@@ -1,5 +1,7 @@
 // Rodičovská část: vstup, nastavení, přehled učení, nahrávání hlasu.
 import { LEVELS, SENTENCES, itemStatus, newProgress, setLevel } from './questions.js';
+import { DIFFICULTIES } from './biomes.js';
+import { openRecorder } from './recorder.js';
 import { hasClip, removeClip, say, startRecording, stopVoice } from './voice.js';
 
 const HOLD_MS = 3000;
@@ -93,37 +95,52 @@ function voiceSection(root, level, kind) {
 }
 
 function panel(root, state, api) {
-  const minutes = [3, 5, 10].map((m) => `<option value="${m}" ${m === state.minutes ? 'selected' : ''}>${m} minut</option>`).join('');
+  const minutes = [[3, '3 minuty'], [5, '5 minut'], [10, '10 minut'], [20, '20 minut'], [0, 'Bez konce']]
+    .map(([m, label]) => `<option value="${m}" ${m === state.minutes ? 'selected' : ''}>${label}</option>`).join('');
   const levels = LEVELS.map((_, i) => `<option value="${i + 1}" ${i + 1 === state.progress.level ? 'selected' : ''}>${i + 1}</option>`).join('');
   const guides = [['both', 'Střídají se'], ['mom', 'Maminka'], ['dad', 'Tatínek']]
     .map(([v, label]) => `<option value="${v}" ${v === state.guide ? 'selected' : ''}>${label}</option>`).join('');
+  const segments = Object.entries(DIFFICULTIES)
+    .map(([v, d]) => `<button data-difficulty="${v}" class="${v === state.difficulty ? 'on' : ''}">${d.label}</button>`).join('');
+  const recorded = (kind) => SENTENCES.filter((s) => hasClip(kind, s.id)).length;
   root.innerHTML = `
     <div class="parent-panel">
       <header><h2>Pro rodiče</h2><button class="close">Zavřít</button></header>
       <section class="actions">
-        <button class="primary new-game">Nová hra</button>
+        <button class="primary new-game">Začít znovu</button>
         <button class="change-child">Změnit Rosinku</button>
         <button class="change-mom">Změnit maminku</button>
         <button class="change-dad">Změnit tatínka</button>
       </section>
       <section class="settings">
-        <label>Délka hry <select class="minutes">${minutes}</select></label>
-        <label>Úroveň <select class="level">${levels}</select></label>
+        <label>Dobrou noc po <select class="minutes">${minutes}</select></label>
+        <label>Obtížnost <span class="segments">${segments}</span></label>
+        <label>Úroveň učení <select class="level">${levels}</select></label>
         <label>Průvodce <select class="guide">${guides}</select></label>
+        <label><input type="checkbox" class="lock-night" ${state.lockNight ? 'checked' : ''}> Po Dobrou noc zamknout</label>
+        <label><input type="checkbox" class="sounds" ${state.sounds ? 'checked' : ''}> Zvuky hry</label>
         <button class="reset">Smazat postup</button>
       </section>
-      <section><h3>Co už umí</h3><div class="learning">${learningHtml(state.progress)}</div></section>
-      <section><h3>Nahrání hlasu</h3>
-        <p>Každý nahrává svoje věty. Stačí věty pro aktuální úroveň. Chybí-li věta, hraje nahrávka druhého rodiče, potom hlas tabletu.</p>
-        <label>Nahrává <select class="recorder"><option value="mom">Maminka</option><option value="dad">Tatínek</option></select></label>
-        <div class="voice-list"></div>
+      <section><h3>Nahrát hlas</h3>
+        <p>Ťukni na svoje jméno. Hra ti ukáže větu po větě. Stačí říct větu a ťuknout na Stop.</p>
+        <div class="voice-cards">
+          <button class="record-mom">Nahrává maminka<small>Hotovo ${recorded('mom')} z ${SENTENCES.length}</small></button>
+          <button class="record-dad">Nahrává tatínek<small>Hotovo ${recorded('dad')} z ${SENTENCES.length}</small></button>
+        </div>
+        <details class="voice-all"><summary>Všechny věty</summary>
+          <label>Nahrává <select class="recorder"><option value="mom">Maminka</option><option value="dad">Tatínek</option></select></label>
+          <div class="voice-list"></div>
+        </details>
       </section>
+      <section><h3>Co už umí</h3><div class="learning">${learningHtml(state.progress)}</div></section>
     </div>`;
 
   const $ = (s) => root.querySelector(s);
   $('.close').onclick = api.close;
   $('.new-game').onclick = api.newGame;
   ['child', 'mom', 'dad'].forEach((kind) => { $(`.change-${kind}`).onclick = () => api.changeCharacter(kind); });
+  $('.lock-night').onchange = (e) => { state.lockNight = e.target.checked; api.save(); };
+  $('.sounds').onchange = (e) => { state.sounds = e.target.checked; api.save(); };
   $('.guide').onchange = (e) => { state.guide = e.target.value; api.save(); };
   $('.minutes').onchange = (e) => { state.minutes = Number(e.target.value); api.save(); };
   $('.level').onchange = (e) => {
@@ -131,6 +148,17 @@ function panel(root, state, api) {
     api.save();
     $('.learning').innerHTML = learningHtml(state.progress);
   };
+  root.querySelectorAll('[data-difficulty]').forEach((b) => {
+    b.onclick = (e) => {
+      e.preventDefault();
+      state.difficulty = b.dataset.difficulty;
+      api.save();
+      root.querySelectorAll('[data-difficulty]').forEach((x) => x.classList.toggle('on', x === b));
+    };
+  });
+  ['mom', 'dad'].forEach((kind) => {
+    $(`.record-${kind}`).onclick = () => openRecorder(root, kind, state.progress.level, () => panel(root, state, api));
+  });
   $('.reset').onclick = () => {
     if (!confirm('Opravdu smazat postup v učení? Nahrávky hlasu zůstanou.')) return;
     state.progress = newProgress();

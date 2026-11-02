@@ -9,9 +9,14 @@ const audio = new Audio();
 let finishCurrent = null;
 let audioCtx = null;
 let speaker = 'mom';
+let chimes = true;
 
 const clipKey = (kind, id) => `${kind}:${id}`;
 const otherOf = (kind) => (kind === 'mom' ? 'dad' : 'mom');
+
+export function setChimes(on) {
+  chimes = on;
+}
 
 export function setSpeaker(kind) {
   speaker = kind;
@@ -81,7 +86,7 @@ export function say(id, kind = speaker) {
 }
 
 export function chime(freq = 660) {
-  if (!audioCtx) return;
+  if (!audioCtx || !chimes) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   const t = audioCtx.currentTime;

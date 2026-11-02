@@ -1,21 +1,21 @@
 // Start hry a přepínání obrazovek.
 import { artSvg, svgToDataUrl } from './art.js';
+import { DIFFICULTIES, MAX_FRIENDS, nextUpgrade } from './biomes.js';
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
 import { pickQuestion, recordAnswer } from './questions.js';
 import { characterOf, loadState, saveState } from './storage.js';
-import { chime, initVoice, say, setSpeaker, stopVoice, unlockAudio } from './voice.js';
+import { chime, initVoice, say, setChimes, setSpeaker, stopVoice, unlockAudio } from './voice.js';
 import { World } from './world.js';
 
-const UPGRADES = ['big', 'fly', 'rainbow', 'friend'];
-const HINT_AFTER = 2;
-const SHOW_AFTER = 3;
+const NOTES = [523, 587, 659, 784, 880];
 
 const $ = (id) => document.getElementById(id);
 const state = loadState();
 const save = () => saveState(state);
-let upgradeTurn = 0;
+let noteTurn = 0;
+let awake = null;
 let guideTurn = 0;
 
 const markup = (kind) => characterFor(kind, characterOf(state, kind));
@@ -35,10 +35,31 @@ const world = new World($('canvas'), {
   onGift: askQuestion,
   onBump: () => { chime(220); say('bum'); },
   onTimeUp: goToBed,
+  onBiome: (id) => say(`place-${id}`),
+  onStar: () => chime(1040),
+  onNote: () => chime(NOTES[noteTurn++ % NOTES.length]),
 });
 
 function show(id) {
   ['start', 'creator', 'game', 'night'].forEach((s) => { $(s).hidden = s !== id; });
+  $('parent-btn').hidden = id === 'creator';
+  $('parent-btn').classList.toggle('quiet', id === 'game');
+  if (id === 'game') keepAwake();
+  else releaseAwake();
+}
+
+// Když to iPad umí, během hry nezhasne obrazovku.
+async function keepAwake() {
+  try {
+    awake = await navigator.wakeLock?.request('screen');
+  } catch {
+    awake = null;
+  }
+}
+
+function releaseAwake() {
+  awake?.release().catch(() => {});
+  awake = null;
 }
 
 function showStart() {
@@ -48,7 +69,7 @@ function showStart() {
 }
 
 function goToBed() {
-  state.locked = true;
+  state.locked = state.lockNight;
   save();
   stopVoice();
   $('night-hero').src = portrait('child');
@@ -71,7 +92,7 @@ async function play() {
   setSpeaker(state.guide === 'dad' ? 'dad' : 'mom');
   await world.load(markup('child'));
   show('game');
-  world.start(state.minutes, state.progress.level);
+  world.start(state.minutes, state.progress.level, DIFFICULTIES[state.difficulty]);
 }
 
 function renderChoices(q, onPick) {
@@ -91,6 +112,7 @@ function renderChoices(q, onPick) {
 function askQuestion() {
   chime(780);
   const q = pickQuestion(state.progress);
+  const { hint, show: showAfter } = DIFFICULTIES[state.difficulty];
   let wrong = 0;
   let finished = false;
   const rightButton = () => document.querySelector('.choice[data-right="true"]');
@@ -115,13 +137,13 @@ function askQuestion() {
     button.classList.remove('wiggle');
     void button.offsetWidth;
     button.classList.add('wiggle');
-    if (wrong >= SHOW_AFTER) {
+    if (wrong >= showAfter) {
       document.querySelectorAll('.choice').forEach((b) => { b.disabled = b !== rightButton(); });
       rightButton().classList.add('pulse');
       await say(q.item.id);
       return finish();
     }
-    if (wrong >= HINT_AFTER) rightButton().classList.add('pulse');
+    if (wrong >= hint) rightButton().classList.add('pulse');
     await say('retry');
     if (!finished) say(q.item.id);
   };
@@ -136,9 +158,9 @@ function askQuestion() {
 }
 
 async function giveUpgrade(q) {
-  const kind = UPGRADES[upgradeTurn++ % UPGRADES.length];
+  const kind = nextUpgrade(world.owned(), world.friends.length);
   const friend = q.choices.find((c) => c.cat === 'animal')?.art ?? 'dog';
-  await world.giveUpgrade(kind, friend);
+  await world.giveUpgrade(kind, friend, MAX_FRIENDS);
   world.resumeAfterQuestion();
   say(`up-${kind}`);
 }
@@ -153,7 +175,7 @@ function openParentPanel() {
     world.paused = false;
   };
   openParent(root, state, {
-    save,
+    save: () => { setChimes(state.sounds); save(); },
     close,
     newGame: () => {
       close();
@@ -174,7 +196,11 @@ function openParentPanel() {
   });
 }
 
+setChimes(state.sounds);
+$('night').addEventListener('click', () => { if (!state.locked) showStart(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('game').hidden) keepAwake(); });
 $('play').addEventListener('click', play);
+$('parent-btn').addEventListener('click', openParentPanel);
 $('play').querySelector('img').src = svgToDataUrl(artSvg('play'));
 $('ear').querySelector('img').src = svgToDataUrl(artSvg('ear'));
 $('night-bed').src = svgToDataUrl(artSvg('bed'));

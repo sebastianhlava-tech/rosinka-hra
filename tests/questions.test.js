@@ -13,9 +13,9 @@ test('10 levels and 55 unique questions', () => {
   assert.equal(new Set(allItems.map((i) => i.id)).size, 55);
 });
 
-test('65 sentences to record, each unique', () => {
-  assert.equal(SENTENCES.length, 65);
-  assert.equal(new Set(SENTENCES.map((s) => s.id)).size, 65);
+test('78 sentences to record, each unique', () => {
+  assert.equal(SENTENCES.length, 78);
+  assert.equal(new Set(SENTENCES.map((s) => s.id)).size, 78);
 });
 
 test('every question has the right answer once and no repeated choice', () => {

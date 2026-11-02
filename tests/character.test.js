@@ -45,3 +45,11 @@ test('náhledy a náhodná postava se vykreslí bez undefined', () => {
     }
   }
 });
+
+test('vylepšení jdou po řadě a nakonec je oslava', async () => {
+  const { UPGRADES, nextUpgrade } = await import('../js/biomes.js');
+  assert.equal(nextUpgrade([], 0), 'fly');
+  assert.equal(nextUpgrade(['fly'], 0), 'big');
+  const all = [...new Set(UPGRADES)];
+  assert.equal(nextUpgrade(all, 3), 'party');
+});

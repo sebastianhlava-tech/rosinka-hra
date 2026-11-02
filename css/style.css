@@ -95,6 +95,23 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 .voice-text { flex: 1; }
 .voice-mark { width: 20px; }
 
+#parent-btn { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 16px; z-index: 10; padding: 10px 18px; min-height: 44px; border-radius: 999px; background: rgba(255,255,255,.8); color: #445; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,.1); }
+#parent-btn.quiet { padding: 6px 12px; min-height: 36px; font-size: 13px; opacity: .55; }
+.segments { display: inline-flex; gap: 6px; margin-left: 6px; }
+#parent .segments button.on { background: #3DAA4E; color: #fff; font-weight: 600; }
+.voice-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+#parent .voice-cards button { min-height: 92px; background: #FFE9EE; font-size: 20px; font-weight: 600; border-radius: 16px; }
+.voice-cards small { display: block; font-weight: 400; font-size: 15px; margin-top: 4px; color: #667; }
+.recorder-box { max-width: 720px; margin: 0 auto; min-height: 100%; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; font-size: 18px; }
+.recorder-box header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.recorder-bar { width: 100%; height: 12px; border-radius: 6px; background: #EDF0F4; overflow: hidden; }
+.recorder-bar i { display: block; height: 100%; background: #3DAA4E; }
+.recorder-text { margin: 0; font-size: 44px; font-weight: 700; line-height: 1.2; }
+#parent button.recorder-main { width: 150px; height: 150px; border-radius: 50%; background: #E23B3B; color: #fff; font-size: 24px; font-weight: 700; }
+#parent button.recorder-main.recording { animation: breathe 1.2s ease-in-out infinite; background: #222; }
+.recorder-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.recorder-row button { min-width: 130px; }
+
 /* Otoč tablet */
 #rotate { display: none; position: fixed; inset: 0; z-index: 25; background: #EAF8FB; align-items: center; justify-content: center; }
 #rotate img { width: 50vw; }

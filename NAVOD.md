@@ -13,20 +13,24 @@ Vytvoř postavičku Rosinky, potom maminku a tatínka. Zelené tlačítko potvrd
 
 ## Rodičovská část
 
-1. Podrž prst 3 sekundy v pravém horním rohu.
-2. Vyřeš příklad.
+Na úvodní obrazovce ťukni vlevo nahoře na Pro rodiče a vyřeš příklad.
+Během hry podrž prst 3 sekundy v pravém horním rohu.
 
-Tady je Nová hra, změna postav, délka hry, úroveň, průvodce a přehled, co už dcera umí.
+Tady je Začít znovu, změna postav, délka hry, obtížnost, úroveň učení, průvodce, zvuky a přehled, co už dcera umí.
 
-Po „Dobrou noc“ se hra zamkne. Odemkne ji tlačítko Nová hra.
+Po „Dobrou noc“ se hra zamkne. Odemkne ji tlačítko Začít znovu.
+U Dobrou noc po zvol Bez konce, když hra nemá končit.
+Vypni Po Dobrou noc zamknout, když hra nemá zůstat zamčená.
 
 ## Nahrání hlasu
 
-1. V rodičovské části zvol, kdo nahrává: Maminka nebo Tatínek.
-2. U věty ťukni na Nahrát, řekni větu a ťukni na Stop.
-3. Přehrát ukáže výsledek.
+1. Otevři Pro rodiče.
+2. Ťukni na Nahrává maminka nebo Nahrává tatínek.
+3. Ťukni na Nahrát, řekni větu a ťukni na Stop.
+4. Hra větu přehraje. Ťukni na Dobré, další, nebo na Znovu.
 
-Každý má svoje věty. Stačí nahrát Společné věty a aktuální úroveň. Celkem je 65 vět na osobu.
+Hra ukáže jen věty, které chybí. Můžeš kdykoli skončit a později pokračovat.
+Každý má svoje věty. Celkem je 78 vět na osobu.
 Když věta chybí, hraje nahrávka druhého rodiče, potom hlas tabletu.
 Nahrávky jsou jen v tomto iPadu a nemají zálohu. Když smažeš ikonu hry, nahrávky zmizí.
 

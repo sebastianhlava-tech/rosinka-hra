@@ -8,6 +8,9 @@ const defaults = () => ({
   characters: { child: null, mom: null, dad: null },
   guide: 'both',
   minutes: 5,
+  difficulty: 'easy',
+  lockNight: true,
+  sounds: true,
   locked: false,
   progress: newProgress(),
 });
