@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>Rosinka</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rosinka">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="start" class="screen" hidden>
+    <img id="start-mom" class="grownup" alt="">
+    <img id="start-hero" alt="">
+    <img id="start-dad" class="grownup" alt="">
+    <button id="play"><img alt="Hrát"></button>
+  </main>
+
+  <main id="creator" class="screen" hidden></main>
+
+  <main id="game" class="screen" hidden>
+    <canvas id="canvas"></canvas>
+    <section id="question" hidden>
+      <img id="guide" alt="">
+      <button id="ear"><img alt="Znovu"></button>
+      <div id="choices"></div>
+    </section>
+  </main>
+
+  <main id="night" class="screen" hidden>
+    <img id="night-mom" class="grownup" alt="">
+    <div class="night-scene">
+      <img id="night-bed" alt="">
+      <img id="night-hero" alt="">
+    </div>
+    <img id="night-dad" class="grownup" alt="">
+  </main>
+
+  <div id="corner" aria-hidden="true"></div>
+  <aside id="parent" hidden></aside>
+  <div id="rotate"><img alt="Otoč tablet"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

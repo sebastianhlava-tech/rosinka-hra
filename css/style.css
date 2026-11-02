@@ -1,0 +1,100 @@
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0; height: 100%; overflow: hidden; background: #EAF8FB;
+  font-family: -apple-system, system-ui, sans-serif; color: #2b2b2b;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  touch-action: none; overscroll-behavior: none;
+}
+
+button { font: inherit; border: 0; background: none; padding: 0; cursor: pointer; color: inherit; }
+img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
+
+.screen { position: fixed; inset: 0; }
+
+/* Start */
+#start { display: flex; align-items: flex-end; justify-content: center; gap: 1vw; padding-bottom: 12vh; background: linear-gradient(#BDE6F7, #EAF8FB 70%, #8FD16F 70%); }
+#start-hero { height: min(42vh, 27vw); }
+.grownup { height: min(58vh, 36vw); }
+#play { align-self: center; margin-left: 4vw; }
+#play img { width: min(32vh, 21vw); height: min(32vh, 21vw); }
+#play { animation: breathe 2.6s ease-in-out infinite; }
+
+/* Tvorba postavičky */
+#creator { display: flex; gap: 3vw; padding: 2vh 3vw; background: #FFF6E5; }
+.creator-left { flex: 0 0 26%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; }
+.creator-left h2 { margin: 0; font-size: 4vh; }
+.creator-preview { height: 60vh; max-width: 100%; }
+.creator-done img { width: 18vh; height: 18vh; }
+.creator-rows { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+.creator-row { display: flex; justify-content: space-between; gap: 1.2vw; height: 18.4vh; }
+.creator-row button { flex: 1; min-width: 0; background: #fff; border-radius: 22px; border: 5px solid #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
+.creator-row button svg { width: 88%; height: 88%; }
+.creator-row.scroll { overflow-x: auto; touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.creator-row.scroll button { flex: 0 0 calc((100% - 4 * 1.2vw) / 4.6); }
+.creator-row.scroll::-webkit-scrollbar { display: none; }
+.creator-row button.picked { border-color: #3DAA4E; background: #EAF7EC; }
+
+/* Hra */
+#canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+#question { position: absolute; inset: 0; background: rgba(255,255,255,.72); display: flex; align-items: center; justify-content: center; animation: fade .4s ease-out; }
+#ear { position: absolute; left: 3vw; top: 3vh; width: 15vh; height: 15vh; background: #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center; }
+#ear img { width: 70%; height: 70%; }
+#guide { position: absolute; left: 3vw; bottom: 3vh; height: 62vh; animation: sway 3s ease-in-out infinite; transform-origin: bottom center; }
+#choices { display: flex; gap: 3vw; align-items: center; justify-content: center; width: 100%; padding-left: 24vw; padding-right: 3vw; }
+.choice { background: #fff; border-radius: 34px; padding: 2.5vh; box-shadow: 0 4px 12px rgba(0,0,0,.14); flex: none; }
+.choice svg { display: block; width: 100%; height: 100%; }
+#choices[data-count="2"] .choice { width: min(46vh, 31vw); height: min(46vh, 31vw); }
+#choices[data-count="3"] .choice { width: min(40vh, 21vw); height: min(40vh, 21vw); }
+#choices[data-count="4"] { flex-wrap: wrap; }
+#choices[data-count="4"] .choice { width: min(38vh, 26vw); height: min(38vh, 26vw); }
+.wiggle { animation: wiggle .5s ease-in-out; }
+.pulse { animation: breathe 1.6s ease-in-out infinite; }
+.glow { outline: 10px solid #3DAA4E; }
+
+/* Dobrou noc */
+#night { background: #24325E; display: flex; align-items: flex-end; justify-content: center; gap: 2vw; padding-bottom: 12vh; }
+.night-scene { position: relative; width: 56vh; height: 56vh; }
+#night-bed { width: 100%; height: 100%; }
+#night-hero { position: absolute; height: 48%; left: 14%; top: 24%; transform: rotate(82deg); }
+
+/* Rodič */
+#corner { position: fixed; top: 0; right: 0; width: 90px; height: 90px; z-index: 20; }
+#parent { position: fixed; inset: 0; z-index: 30; background: #fff; overflow-y: auto; touch-action: pan-y; -webkit-user-select: text; user-select: text; }
+.parent-gate { max-width: 420px; margin: 16vh auto; text-align: center; font-size: 22px; padding: 0 16px; }
+.parent-gate input { font: inherit; width: 140px; padding: 10px; text-align: center; margin-bottom: 20px; border: 2px solid #ccd; border-radius: 10px; }
+.parent-panel { max-width: 860px; margin: 0 auto; padding: 20px 24px 60px; font-size: 18px; }
+.parent-panel header { display: flex; justify-content: space-between; align-items: center; }
+.parent-panel section { margin-top: 22px; }
+.parent-panel h2, .parent-panel h3 { margin: 0 0 8px; }
+.parent-panel select { font: inherit; padding: 6px; margin-left: 6px; }
+.actions, .settings { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+#parent button { padding: 10px 16px; background: #EDF0F4; border-radius: 10px; min-height: 44px; }
+#parent button.primary { background: #3DAA4E; color: #fff; font-weight: 600; }
+#parent button:disabled { opacity: .4; }
+#parent button.recording { background: #E23B3B; color: #fff; }
+.learning p { margin: 8px 0; line-height: 2; }
+.tag { display: inline-block; padding: 0 9px; border-radius: 999px; margin: 0 3px 3px 0; font-size: 15px; line-height: 1.7; }
+.tag.known { background: #C9EBCF; }
+.tag.learning { background: #FFEBB0; }
+.tag.new { background: #EDF0F4; color: #667; }
+.parent-panel details { margin: 8px 0; }
+.parent-panel summary { font-weight: 600; padding: 8px 0; }
+.voice-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid #EDF0F4; }
+.voice-text { flex: 1; }
+.voice-mark { width: 20px; }
+
+/* Otoč tablet */
+#rotate { display: none; position: fixed; inset: 0; z-index: 25; background: #EAF8FB; align-items: center; justify-content: center; }
+#rotate img { width: 50vw; }
+@media (orientation: portrait) { #rotate { display: flex; } }
+
+@keyframes breathe { 50% { transform: scale(1.06); } }
+@keyframes sway { 25% { transform: rotate(-1.5deg); } 75% { transform: rotate(1.5deg); } }
+@keyframes wiggle { 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes fade { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #play, .pulse { animation-duration: 4s; }
+}
