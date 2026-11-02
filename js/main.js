@@ -1,5 +1,6 @@
 // Start hry a přepínání obrazovek.
-import { artSvg, characterFor, svgToDataUrl } from './art.js';
+import { artSvg, svgToDataUrl } from './art.js';
+import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
 import { pickQuestion, recordAnswer } from './questions.js';

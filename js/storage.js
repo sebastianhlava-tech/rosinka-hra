@@ -1,6 +1,6 @@
 // Nastavení je v localStorage. Nahrávky hlasu jsou v IndexedDB. Nic neopouští tablet.
 import { newProgress } from './questions.js';
-import { DEFAULT_CHARACTERS } from './art.js';
+import { DEFAULT_CHARACTERS } from './character.js';
 
 const KEY = 'rosinka-v1';
 

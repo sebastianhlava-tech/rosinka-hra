@@ -3,10 +3,10 @@
 const svg = (body, w = 200, h = 200) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
 
-const eye = (x, y, r = 6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#2b2b2b"/><circle cx="${x + 2}" cy="${y - 2}" r="${r / 3}" fill="#fff"/>`;
-const eyes = (y = 85, gap = 28, r = 6) => eye(100 - gap, y, r) + eye(100 + gap, y, r);
+export const eye = (x, y, r = 6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#2b2b2b"/><circle cx="${x + 2}" cy="${y - 2}" r="${r / 3}" fill="#fff"/>`;
+export const eyes = (y = 85, gap = 28, r = 6) => eye(100 - gap, y, r) + eye(100 + gap, y, r);
 const smile = (y = 120, w = 22, c = '#2b2b2b') => `<path d="M${100 - w} ${y} q${w} ${w * 0.8} ${w * 2} 0" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`;
-const round = (cx, cy, rx, ry, fill) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}"/>`;
+export const round = (cx, cy, rx, ry, fill) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}"/>`;
 
 export const COLORS = {
   red: '#E23B3B', blue: '#2F6FDE', yellow: '#FFD432', green: '#3DAA4E', orange: '#FF8A1F',
@@ -52,6 +52,7 @@ const ITEMS = {
   bed: '<rect x="10" y="80" width="14" height="108" rx="6" fill="#B07A43"/><rect x="176" y="50" width="14" height="138" rx="6" fill="#B07A43"/><rect x="16" y="120" width="170" height="44" rx="10" fill="#8FC8F2"/><rect x="26" y="100" width="56" height="30" rx="12" fill="#fff"/>',
   ear: '<path d="M60 92 C60 30 150 30 150 90 C150 130 112 124 112 158 C112 186 72 186 70 156" fill="none" stroke="#2F6FDE" stroke-width="18" stroke-linecap="round"/><path d="M94 96c0-28 32-28 32-2" fill="none" stroke="#2F6FDE" stroke-width="12" stroke-linecap="round"/>',
   play: round(100, 100, 92, 92, '#3DAA4E') + '<path d="M74 54 L146 100 L74 146Z" fill="#fff" stroke="#fff" stroke-width="10" stroke-linejoin="round"/>',
+  dice: '<rect x="24" y="24" width="152" height="152" rx="34" fill="#FF8A1F"/>' + [[62, 62], [138, 62], [100, 100], [62, 138], [138, 138]].map(([x, y]) => round(x, y, 14, 14, '#fff')).join(''),
   check: round(100, 100, 92, 92, '#3DAA4E') + '<path d="M54 104 L88 138 L150 66" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>',
   tablet: '<g transform="rotate(90 100 100)"><rect x="50" y="20" width="100" height="160" rx="14" fill="#333"/><rect x="60" y="32" width="80" height="136" fill="#BFE3F5"/></g>',
 };
@@ -88,133 +89,3 @@ export function loadImage(markup) {
     img.src = svgToDataUrl(markup);
   });
 }
-
-// --- Postavička: plátno 200 × 300, díly se skládají na sebe ---
-
-const LEG = '#F2C7A5';
-
-const FACES = [
-  { skin: '#FFE0C4', mouth: `<path d="M84 122q16 14 32 0" fill="none" stroke="#7a3b2e" stroke-width="4" stroke-linecap="round"/>`, eye: eyes(100, 24, 7) },
-  { skin: '#F7CFA8', mouth: `<path d="M80 118q20 26 40 0z" fill="#B3372E"/>`, eye: eyes(100, 24, 7) },
-  { skin: '#E8B48A', mouth: `<circle cx="100" cy="124" r="8" fill="#B3372E"/>`, eye: eyes(100, 24, 9) },
-  { skin: '#B57F55', mouth: `<path d="M84 122q16 14 32 0" fill="none" stroke="#4d2518" stroke-width="4" stroke-linecap="round"/>`, eye: `<path d="M66 102q10-12 20 0M114 102q10-12 20 0" fill="none" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round"/>` },
-  { skin: '#7D5235', mouth: `<path d="M80 118q20 26 40 0z" fill="#E9A49C"/>`, eye: eyes(100, 24, 7) },
-];
-
-const HAIR = [
-  { back: round(100, 96, 72, 72, '#E7B93F'), front: '<path d="M36 96 C34 28 166 28 164 96 C140 60 60 60 36 96Z" fill="#E7B93F"/>' },
-  { back: '', front: '<path d="M38 100 C30 26 170 26 162 100 C138 64 112 72 100 58 C86 74 60 64 38 100Z" fill="#6B3F1E"/><circle cx="30" cy="84" r="24" fill="#6B3F1E"/><circle cx="170" cy="84" r="24" fill="#6B3F1E"/>' },
-  { back: '<rect x="30" y="60" width="140" height="130" rx="50" fill="#2B2320"/>', front: '<path d="M36 92 C34 24 166 24 164 92 C150 72 50 72 36 92Z" fill="#2B2320"/>' },
-  { back: '', front: '<path d="M40 96 C36 30 164 30 160 96 C150 76 130 72 100 72 C70 72 50 76 40 96Z" fill="#C8562B"/><path d="M36 92 q-30 24 -12 72 q14 -8 22 -60zM164 92 q30 24 12 72 q-14 -8 -22 -60z" fill="#C8562B"/>' },
-  { back: [[42, 76], [64, 40], [100, 28], [136, 40], [158, 76], [32, 112], [168, 112]].map(([x, y]) => round(x, y, 26, 26, '#4A3020')).join(''), front: '' },
-  { back: '<rect x="32" y="50" width="136" height="104" rx="44" fill="#6B3F1E"/>', front: '<path d="M38 86 C38 26 162 26 162 86Z" fill="#6B3F1E"/>' },
-  { back: '', front: '<path d="M38 96 C34 26 166 26 162 96 C140 62 60 62 38 96Z" fill="#E7B93F"/>' + round(44, 34, 22, 30, '#E7B93F') + round(156, 34, 22, 30, '#E7B93F') + round(60, 52, 9, 9, '#E23B3B') + round(140, 52, 9, 9, '#E23B3B') },
-  { back: [150, 172, 194, 216].map((y) => round(158, y, 17, 14, '#8A5A33')).join(''), front: '<path d="M36 96 C34 26 166 26 164 96 C146 62 56 62 36 96Z" fill="#8A5A33"/>' + round(158, 130, 22, 26, '#8A5A33') },
-  { back: '', front: round(100, 26, 30, 28, '#2B2320') + '<path d="M38 96 C34 28 166 28 162 96 C140 64 60 64 38 96Z" fill="#2B2320"/>' },
-  { back: '<path d="M30 70 Q10 120 30 150 Q16 180 44 196 H156 Q184 180 170 150 Q190 120 170 70Z" fill="#F28BBE"/>', front: '<path d="M36 92 C34 24 166 24 164 92 C136 58 64 58 36 92Z" fill="#F28BBE"/>' },
-];
-
-const DRESS = [
-  { c: '#FF8FC0', extra: '' },
-  { c: '#FFD432', extra: [[78, 196], [120, 180], [100, 226], [64, 236], [134, 228]].map(([x, y]) => round(x, y, 7, 7, '#fff')).join('') },
-  { c: '#2F6FDE', extra: '<path d="M64 200h72M56 222h88M50 244h100" stroke="#fff" stroke-width="7"/>' },
-  { c: '#3DAA4E', extra: '<rect x="82" y="205" width="36" height="26" rx="6" fill="#FFD432"/>' },
-  { c: '#E23B3B', extra: [[80, 200], [120, 200], [70, 232], [100, 226], [130, 232]].map(([x, y]) => round(x, y, 6, 6, '#fff')).join('') },
-  { c: '#8E4EC6', extra: '<path d="M100 214 C84 200 72 214 100 238 C128 214 116 200 100 214Z" fill="#FFD432"/>' },
-  { c: '#FF8A1F', extra: '<path d="M60 214q10 12 20 0q10 12 20 0q10 12 20 0q10 12 20 0M48 246q13 12 26 0q13 12 26 0q13 12 26 0q13 12 26 0" fill="none" stroke="#fff" stroke-width="6"/>' },
-  { c: '#2FB6B0', body: '<rect x="70" y="160" width="60" height="62" rx="14" fill="#2FB6B0"/><rect x="72" y="216" width="26" height="46" fill="#2F6FDE"/><rect x="102" y="216" width="26" height="46" fill="#2F6FDE"/>' },
-  { c: '#3F6FB5', body: '<rect x="70" y="160" width="60" height="50" rx="12" fill="#FFD432"/><rect x="72" y="214" width="26" height="48" fill="#3F6FB5"/><rect x="102" y="214" width="26" height="48" fill="#3F6FB5"/><rect x="76" y="182" width="48" height="42" rx="5" fill="#3F6FB5"/><path d="M82 184V160M118 184V160" stroke="#3F6FB5" stroke-width="8"/>' },
-  { c: '#FFC2DD', body: '<path d="M76 160 H124 L132 198 Q172 230 164 258 H36 Q28 230 68 198Z" fill="#FFC2DD"/><path d="M68 198 H132" stroke="#FFD432" stroke-width="8"/>' + [[62, 232], [100, 240], [138, 232]].map(([x, y]) => round(x, y, 7, 7, '#FFD432')).join('') },
-];
-
-const SHOES = ['#E23B3B', '#2F6FDE', '#FFD432', '#FF8FC0', '#FFFFFF'];
-
-const HATS = [
-  '',
-  `<path d="M100 48 L66 26 Q58 48 66 66Z M100 48 L134 26 Q142 48 134 66Z" fill="#E23B3B"/><circle cx="100" cy="48" r="11" fill="#B9202A"/>`,
-  `<ellipse cx="100" cy="46" rx="86" ry="15" fill="#E8C872"/><path d="M52 44 C52 2 148 2 148 44Z" fill="#F2D88C"/><rect x="52" y="34" width="96" height="11" fill="#E23B3B"/>`,
-  `<path d="M56 54 L50 8 L78 30 L100 4 L122 30 L150 8 L144 54Z" fill="#FFD432" stroke="#E2B41C" stroke-width="4"/><circle cx="100" cy="42" r="6" fill="#E23B3B"/>`,
-  `<path d="M48 52 C48 -6 152 -6 152 52Z" fill="#2F6FDE"/><rect x="42" y="44" width="116" height="16" rx="8" fill="#fff"/><circle cx="100" cy="6" r="13" fill="#fff"/>`,
-];
-
-const shoesPart = (i) => `<rect x="60" y="272" width="38" height="20" rx="10" fill="${SHOES[i]}" stroke="#555" stroke-width="2"/><rect x="102" y="272" width="38" height="20" rx="10" fill="${SHOES[i]}" stroke="#555" stroke-width="2"/>`;
-const dressPart = (i) => DRESS[i].body ?? `<path d="M72 160 H128 L156 258 H44Z" fill="${DRESS[i].c}"/>${DRESS[i].extra}`;
-const facePart = (i) => `${round(100, 104, 62, 62, FACES[i].skin)}${FACES[i].eye}${round(62, 118, 11, 8, '#F7A9A0')}${round(138, 118, 11, 8, '#F7A9A0')}${FACES[i].mouth}`;
-
-export function characterSvg({ face, hair, dress, shoes, hat }) {
-  const skin = FACES[face].skin;
-  return figure(
-    HAIR[hair].back
-    + `<rect x="74" y="244" width="20" height="34" fill="${skin}"/><rect x="106" y="244" width="20" height="34" fill="${skin}"/>`
-    + shoesPart(shoes)
-    + `<path d="M70 174 L32 214" stroke="${skin}" stroke-width="17" stroke-linecap="round"/><path d="M130 174 L168 214" stroke="${skin}" stroke-width="17" stroke-linecap="round"/>`
-    + dressPart(dress)
-    + facePart(face)
-    + HAIR[hair].front
-    + HATS[hat],
-  );
-}
-
-const DAD_HAIR = [
-  { back: '', front: '<path d="M38 96 C34 26 166 26 162 96 C146 66 54 66 38 96Z" fill="#3B2A1E"/>' },
-  { back: '', front: '<path d="M38 100 C30 30 170 26 162 92 C130 60 90 84 38 100Z" fill="#8A5A33"/>' },
-  { back: '', front: '<path d="M38 104 Q34 74 48 66 M162 104 Q166 74 152 66" fill="none" stroke="#6B6B6B" stroke-width="16" stroke-linecap="round"/>' },
-  { back: '', front: [[50, 66], [76, 44], [108, 40], [138, 48], [156, 72]].map(([x, y]) => round(x, y, 24, 24, '#2B2320')).join('') },
-  { back: '', front: '<path d="M38 96 C34 26 166 26 162 96 C146 66 54 66 38 96Z" fill="#C8562B"/><path d="M38 104 C40 190 160 190 162 104 C150 132 130 112 100 112 C70 112 50 132 38 104Z" fill="#C8562B"/>' },
-  { back: '', front: '<path d="M38 96 C34 26 166 26 162 96 C146 66 54 66 38 96Z" fill="#E7B93F"/>' },
-  { back: '', front: '<path d="M38 96 C34 26 166 26 162 96 C146 66 54 66 38 96Z" fill="#6B3F1E"/><path d="M72 118 Q100 100 128 118 Q100 112 72 118Z" fill="#6B3F1E" stroke="#6B3F1E" stroke-width="6"/>' },
-  { back: '<rect x="30" y="60" width="140" height="110" rx="46" fill="#2B2320"/>', front: '<path d="M36 92 C34 24 166 24 164 92 C150 72 50 72 36 92Z" fill="#2B2320"/>' },
-  { back: '', front: '<path d="M38 96 C34 26 166 26 162 96 C146 66 54 66 38 96Z" fill="#9A9A9A"/><path d="M42 106 C46 180 154 180 158 106 C144 128 56 128 42 106Z" fill="#9A9A9A"/>' },
-];
-
-const shirtPart = (i) => `<rect x="62" y="126" width="76" height="92" rx="16" fill="${DRESS[i].c}"/><rect x="68" y="206" width="30" height="72" fill="#3F4A63"/><rect x="102" y="206" width="30" height="72" fill="#3F4A63"/>`;
-
-const head = (body) => `<g transform="translate(25 -6) scale(.75)">${body}</g>`;
-
-function adultSvg(kind, { face, hair, dress, shoes, hat }) {
-  const skin = FACES[face].skin;
-  const dad = kind === 'dad';
-  const hairSet = dad ? DAD_HAIR : HAIR;
-  return figure(
-    head(hairSet[hair].back)
-    + `<rect x="90" y="108" width="20" height="30" fill="${skin}"/>`
-    + `<rect x="74" y="210" width="20" height="66" fill="${skin}"/><rect x="106" y="210" width="20" height="66" fill="${skin}"/>`
-    + shoesPart(shoes)
-    + `<path d="M72 142 L36 196" stroke="${skin}" stroke-width="16" stroke-linecap="round"/><path d="M128 142 L164 196" stroke="${skin}" stroke-width="16" stroke-linecap="round"/>`
-    + (dad ? shirtPart(dress) : `<g transform="translate(20 -30) scale(.8 .98)">${dressPart(dress)}</g>`)
-    + head(facePart(face) + hairSet[hair].front + HATS[hat]),
-  );
-}
-
-export const characterFor = (kind, choice) => (kind === 'child' ? characterSvg(choice) : adultSvg(kind, choice));
-
-const figure = (body) => `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="320" viewBox="0 -20 200 320">${body}</svg>`;
-
-const crop = (body, box) =>`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="${box}">${body}</svg>`;
-
-// Náhled jednoho dílu pro tvorbu postavičky.
-export function partSvg(category, i, kind = 'child') {
-  const dad = kind === 'dad';
-  if (category === 'face') return crop(facePart(i), '30 34 140 140');
-  if (category === 'hair') {
-    const h = (dad ? DAD_HAIR : HAIR)[i];
-    return crop(h.back + round(100, 104, 62, 62, '#F7CFA8') + h.front, '0 0 200 220');
-  }
-  if (category === 'dress') return dad ? crop(shirtPart(i), '30 120 140 165') : crop(dressPart(i), '20 150 160 120');
-  if (category === 'shoes') return crop(shoesPart(i), '50 232 100 70');
-  if (i === 0) return crop(`<circle cx="100" cy="50" r="40" fill="none" stroke="#C9D1D8" stroke-width="9"/><path d="M72 22 L128 78" stroke="#C9D1D8" stroke-width="9"/>`, '30 -20 140 140');
-  return crop(HATS[i], '10 -24 180 110');
-}
-
-export function optionCount(category, kind) {
-  if (category === 'hair') return (kind === 'dad' ? DAD_HAIR : HAIR).length;
-  if (category === 'dress') return DRESS.length;
-  return 5;
-}
-
-export const CATEGORIES = ['face', 'hair', 'dress', 'shoes', 'hat'];
-export const DEFAULT_CHARACTERS = {
-  child: { face: 0, hair: 0, dress: 0, shoes: 0, hat: 1 },
-  mom: { face: 0, hair: 2, dress: 4, shoes: 0, hat: 0 },
-  dad: { face: 1, hair: 0, dress: 2, shoes: 1, hat: 0 },
-};

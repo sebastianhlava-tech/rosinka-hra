@@ -1,48 +1,114 @@
-// Tvorba postavičky, maminky a tatínka: 5 řad, v každé 5 velkých obrázků.
-import { CATEGORIES, artSvg, characterFor, optionCount, partSvg, svgToDataUrl } from './art.js';
+// Tvorba postavičky, maminky a tatínka: nahoře karty, pod nimi druhy a barvy.
+import { artSvg, svgToDataUrl } from './art.js';
+import { CATEGORIES, characterFor, hasColor, normalizeCharacter, optionCount, paletteFor, partSvg, randomCharacter } from './character.js';
 import { chime } from './voice.js';
 
 const TITLES = { child: 'Rosinka', mom: 'Maminka', dad: 'Tatínek' };
+const TAB_ICONS = { face: 0, hair: 0, dress: 0, shoes: 0, hat: 2, glasses: 1, necklace: 2, back: 1, hand: 1, paint: 2 };
 
 export function openCreator(root, kind, character, onDone) {
-  const choice = { ...character };
+  let choice = normalizeCharacter(character);
+  let cat = CATEGORIES[0].id;
+
   root.innerHTML = `
     <div class="creator-left">
       <h2>${TITLES[kind]}</h2>
-      <img class="creator-preview" alt="">
-      <button class="creator-done"><img src="${svgToDataUrl(artSvg('check'))}" alt="Hotovo"></button>
+      <div class="creator-stage"><img class="creator-preview" alt=""></div>
+      <div class="creator-actions">
+        <button class="creator-dice"><img src="${svgToDataUrl(artSvg('dice'))}" alt="Náhodně"></button>
+        <button class="creator-done"><img src="${svgToDataUrl(artSvg('check'))}" alt="Hotovo"></button>
+      </div>
     </div>
-    <div class="creator-rows"></div>`;
+    <div class="creator-right">
+      <div class="creator-tabs"></div>
+      <div class="creator-options"></div>
+      <div class="creator-colors"></div>
+    </div>`;
 
   const preview = root.querySelector('.creator-preview');
-  const rows = root.querySelector('.creator-rows');
-  const refresh = () => {
+  const tabs = root.querySelector('.creator-tabs');
+  const options = root.querySelector('.creator-options');
+  const colors = root.querySelector('.creator-colors');
+
+  const showFigure = () => {
     preview.src = svgToDataUrl(characterFor(kind, choice));
-    rows.querySelectorAll('button').forEach((b) => {
-      b.classList.toggle('picked', choice[b.dataset.cat] === Number(b.dataset.i));
+    preview.classList.remove('hop');
+    void preview.offsetWidth;
+    preview.classList.add('hop');
+  };
+
+  const showColors = () => {
+    colors.classList.toggle('off', !hasColor(cat, choice[cat]));
+    colors.querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('picked', choice.colors[cat] === b.dataset.color);
     });
   };
 
-  for (const cat of CATEGORIES) {
-    const row = document.createElement('div');
+  const showOptions = () => {
     const count = optionCount(cat, kind);
-    row.className = count > 5 ? 'creator-row scroll' : 'creator-row';
+    options.innerHTML = '';
+    options.style.gridTemplateColumns = `repeat(${Math.ceil(count / 2)}, 1fr)`;
     for (let i = 0; i < count; i++) {
       const b = document.createElement('button');
-      b.dataset.cat = cat;
-      b.dataset.i = i;
-      b.innerHTML = partSvg(cat, i, kind);
+      b.classList.toggle('picked', choice[cat] === i);
+      b.innerHTML = partSvg(cat, i, kind, choice);
       b.addEventListener('click', () => {
         choice[cat] = i;
-        chime(520 + i * 60);
-        refresh();
+        chime(520 + i * 40);
+        options.querySelector('.picked')?.classList.remove('picked');
+        b.classList.add('picked');
+        showColors();
+        showFigure();
       });
-      row.append(b);
+      options.append(b);
     }
-    rows.append(row);
-  }
+  };
 
+  const paintColors = () => {
+    colors.innerHTML = '';
+    paletteFor(cat).forEach((color) => {
+      const b = document.createElement('button');
+      b.dataset.color = color;
+      b.style.background = color;
+      b.addEventListener('click', () => {
+        // Druhé ťuknutí vrátí původní barvu. Kůže barvu mít musí.
+        if (choice.colors[cat] === color && cat !== 'face') delete choice.colors[cat];
+        else choice.colors[cat] = color;
+        chime(700);
+        showOptions();
+        showColors();
+        showFigure();
+      });
+      colors.append(b);
+    });
+  };
+
+  const openTab = () => {
+    tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.cat === cat));
+    paintColors();
+    showOptions();
+    showColors();
+  };
+
+  CATEGORIES.forEach(({ id, label }) => {
+    const b = document.createElement('button');
+    b.dataset.cat = id;
+    b.innerHTML = `${partSvg(id, TAB_ICONS[id], kind)}<span>${label}</span>`;
+    b.addEventListener('click', () => {
+      cat = id;
+      chime(600);
+      openTab();
+    });
+    tabs.append(b);
+  });
+
+  root.querySelector('.creator-dice').addEventListener('click', () => {
+    choice = randomCharacter(kind, choice);
+    chime(880);
+    openTab();
+    showFigure();
+  });
   root.querySelector('.creator-done').addEventListener('click', () => onDone(choice));
-  refresh();
-  rows.querySelectorAll('.picked').forEach((b) => b.scrollIntoView({ inline: 'center', block: 'nearest' }));
+  openTab();
+  showFigure();
 }
