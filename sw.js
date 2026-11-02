@@ -1,6 +1,6 @@
 // Uloží hru do tabletu, aby běžela bez internetu.
 // S internetem bere nejnovější soubory, bez něj uloženou kopii.
-const VERSION = 'rosinka-3';
+const VERSION = 'rosinka-4';
 const FILES = [
   '.', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png', 'css/style.css',
   'js/main.js', 'js/world.js', 'js/art.js', 'js/biomes.js', 'js/recorder.js', 'js/character.js', 'js/creator.js', 'js/questions.js',

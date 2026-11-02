@@ -29,7 +29,7 @@ function gate(root, onPass, onClose) {
   const input = root.querySelector('input');
   root.querySelector('.close').onclick = onClose;
   root.querySelector('.primary').onclick = () => {
-    if (Number(input.value) === a + b) onPass();
+    if (Number(input.value) === a + b) { input.blur(); onPass(); }
     else input.value = '';
   };
 }

@@ -62,6 +62,25 @@ function releaseAwake() {
   awake = null;
 }
 
+// iPad umí stránku přiblížit a zaseknout. Když se to stane, vrátíme ji zpět
+// a do té doby povolíme oddálení dvěma prsty.
+const zoomed = () => (window.visualViewport?.scale ?? 1) > 1.01;
+
+function watchZoom() {
+  document.documentElement.classList.toggle('zoomed', zoomed());
+}
+
+function resetZoom() {
+  const meta = document.querySelector('meta[name=viewport]');
+  const content = meta.content;
+  meta.content = content.replace('initial-scale=1', 'initial-scale=1.01');
+  requestAnimationFrame(() => {
+    meta.content = content;
+    scrollTo(0, 0);
+    watchZoom();
+  });
+}
+
 function showStart() {
   $('start-hero').src = portrait('child');
   setFamily('start');
@@ -206,7 +225,10 @@ $('ear').querySelector('img').src = svgToDataUrl(artSvg('ear'));
 $('night-bed').src = svgToDataUrl(artSvg('bed'));
 $('rotate').querySelector('img').src = svgToDataUrl(artSvg('tablet'));
 bindCornerHold($('corner'), openParentPanel);
-document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('gesturestart', (e) => { if (!zoomed()) e.preventDefault(); });
+visualViewport?.addEventListener('resize', watchZoom);
+document.addEventListener('focusout', resetZoom);
+addEventListener('orientationchange', resetZoom);
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 initVoice();

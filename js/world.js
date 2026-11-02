@@ -63,8 +63,8 @@ export class World {
 
   resize() {
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    this.canvas.width = innerWidth * dpr;
-    this.canvas.height = innerHeight * dpr;
+    this.canvas.width = document.documentElement.clientWidth * dpr;
+    this.canvas.height = document.documentElement.clientHeight * dpr;
     this.scale = this.canvas.height / VIEW_H;
     this.viewW = this.canvas.width / this.scale;
   }
