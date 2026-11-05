@@ -75,6 +75,11 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 #choices[data-count="3"] .choice { width: min(40vh, 21vw); height: min(40vh, 21vw); }
 #choices[data-count="4"] { flex-wrap: wrap; }
 #choices[data-count="4"] .choice { width: min(38vh, 26vw); height: min(38vh, 26vw); }
+.body-pick { position: relative; height: 84vh; aspect-ratio: 200 / 320; }
+.body-pick img { width: 100%; height: 100%; }
+.body-spot { position: absolute; width: 16%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: none; box-shadow: none; padding: 0; pointer-events: none; }
+.body-spot.pulse { animation: none; }
+.body-spot.pulse, .body-spot.glow { outline: none; border: 6px solid #3DAA4E; background: rgba(61,170,78,.12); }
 .wiggle { animation: wiggle .5s ease-in-out; }
 .pulse { animation: breathe 1.6s ease-in-out infinite; }
 .glow { outline: 10px solid #3DAA4E; }
@@ -108,6 +113,8 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 .room-item { width: 14vh; height: 14vh; }
 .room-item svg, .sticker svg { width: 100%; height: 100%; }
 .room-item.hop, .sticker.hop { animation: hop .4s ease-out; }
+#night-task { position: absolute; left: 2vw; top: 9vh; max-width: 21vw; padding: 1.6vh 2vw; background: #FFF6E5; color: #5b4a2e; border-radius: 14px; font-size: 2.2vh; line-height: 1.35; transform: rotate(-2deg); box-shadow: 0 3px 8px rgba(0,0,0,.25); }
+#night-task b { display: block; font-size: 1.8vh; color: #8a7350; margin-bottom: .6vh; }
 #album-btn { position: absolute; right: 3vw; bottom: 4vh; width: 15vh; height: 15vh; }
 #album-btn img, #album-close img { width: 100%; height: 100%; }
 #album { position: fixed; inset: 0; z-index: 15; background: #FFF6E5; overflow-y: auto; touch-action: pan-y; padding: 4vh 4vw; }

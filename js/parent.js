@@ -1,5 +1,5 @@
 // Rodičovská část: vstup, nastavení, přehled učení, nahrávání hlasu.
-import { SENTENCES, TRACKS, isOff, itemStatus, newProgress, setStage, stageOf } from './questions.js';
+import { SENTENCES, TRACKS, isOff, itemName, itemStatus, newProgress, setStage, stageOf } from './questions.js';
 import { DIFFICULTIES } from './biomes.js';
 import { speciesName } from './pets.js';
 import { openRecorder } from './recorder.js';
@@ -39,9 +39,11 @@ function gate(root, onPass, onClose) {
 
 function stageSelect(p, t) {
   const now = isOff(p, t.id) ? 0 : stageOf(p, t.id);
-  const closed = now === 0 && !isOff(p, t.id) ? '<option value="-1" selected>Otevře se samo</option>' : '';
+  // Písmena a číslice se samy neotevřou: dokud je rodič nezapne, jsou vypnuté.
+  const off = isOff(p, t.id) || (t.manual && now === 0);
+  const closed = now === 0 && !off ? '<option value="-1" selected>Otevře se samo</option>' : '';
   const steps = t.stages.map((_, i) => `<option value="${i + 1}" ${i + 1 === now ? 'selected' : ''}>Stupeň ${i + 1} z ${t.stages.length}</option>`).join('');
-  return `<select data-track="${t.id}">${closed}<option value="0" ${isOff(p, t.id) ? 'selected' : ''}>Vypnuto</option>${steps}</select>`;
+  return `<select data-track="${t.id}">${closed}<option value="0" ${off ? 'selected' : ''}>Vypnuto</option>${steps}</select>`;
 }
 
 function learningHtml(progress) {
@@ -49,7 +51,7 @@ function learningHtml(progress) {
   return TRACKS.map((t) => {
     const cells = t.stages.flatMap((st) => st.items).map((item) => {
       const status = itemStatus(progress, item);
-      const word = item.text.replace(/^(Kde je|Kde jsou|Kdo dělá) /, '').replace('?', '');
+      const word = itemName(item);
       return `<span class="tag ${status}" title="${labels[status]}">${word}</span>`;
     }).join('');
     return `<p><b>${t.label}</b> ${stageSelect(progress, t)}<br>${cells}</p>`;

@@ -8,10 +8,34 @@ import { artKeys, artSvg } from '../js/art.js';
 const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const master = (p, item) => { recordAnswer(p, item.id, true); recordAnswer(p, item.id, true); };
 
-test('6 stop, 59 otázek, každé id jednou', () => {
-  assert.equal(TRACKS.length, 6);
-  assert.equal(ALL_ITEMS.length, 59);
-  assert.equal(new Set(ALL_ITEMS.map((i) => i.id)).size, 59);
+test('12 stop, každé id otázky jednou', () => {
+  assert.equal(TRACKS.length, 12);
+  assert.equal(new Set(ALL_ITEMS.map((i) => i.id)).size, ALL_ITEMS.length);
+});
+
+test('písmena a číslice zapne jen rodič, pak se ptají', async () => {
+  const { setStage, worldTask } = await import('../js/questions.js');
+  const p = newProgress();
+  ALL_ITEMS.forEach((i) => master(p, i));
+  assert.equal(stageOf(p, 'letters'), 0);
+  setStage(p, 'letters', 1);
+  const rng = seeded(3);
+  let seen = false;
+  for (let n = 0; n < 200 && !seen; n++) seen = pickQuestion(p, rng).item.cat === 'letter';
+  assert.ok(seen);
+  assert.match(worldTask(p, rng), /\.$/);
+});
+
+test('otázka na tělo má správnou odpověď mezi částmi těla', () => {
+  const p = newProgress();
+  setStage(p, 'body', 2);
+  const rng = seeded(5);
+  for (let n = 0; n < 100; n++) {
+    const q = pickQuestion(p, rng);
+    if (q.item.cat !== 'body') continue;
+    assert.ok(q.answerId.startsWith('body-'));
+    assert.ok(q.item.part);
+  }
 });
 
 test('staré id otázek zůstala, aby platily nahrávky', () => {
@@ -54,7 +78,8 @@ test('každá otázka má správnou odpověď jednou a žádnou dvakrát', () =>
     assert.ok(ids.length >= 2 && ids.length <= 4);
     recordAnswer(p, q.item.id, true);
   }
-  TRACKS.forEach((t) => assert.equal(stageOf(p, t.id), t.stages.length, t.id));
+  // Písmena a číslice se samy neotevřou.
+  TRACKS.forEach((t) => assert.equal(stageOf(p, t.id), t.manual ? 0 : t.stages.length, t.id));
 });
 
 test('stejná otázka nikdy dvakrát za sebou', () => {

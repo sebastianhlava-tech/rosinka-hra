@@ -6,7 +6,7 @@ import { BIOMES, DIFFICULTIES, MAX_FRIENDS, nextUpgrade, pickWeather } from './b
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
-import { ALL_ITEMS, itemStatus, pickQuestion, playLevel, recordAnswer } from './questions.js';
+import { ALL_ITEMS, itemStatus, pickQuestion, playLevel, recordAnswer, worldTask } from './questions.js';
 import { ANSWER_STARS, ROOM_ITEMS, addRunStar, addStars } from './shop.js';
 import { openShop } from './shopview.js';
 import { characterOf, loadState, saveState } from './storage.js';
@@ -163,6 +163,7 @@ function goToBed() {
   $('night-hero').src = portrait('child');
   setFamily('night');
   renderRoom();
+  $('night-task').innerHTML = `<b>Úkol do světa (pro rodiče)</b>${worldTask(state.progress)}`;
   show('night');
   say('night');
 }
@@ -235,9 +236,51 @@ async function startTrip(biome) {
   say(`place-${BIOMES[biome].id}`);
 }
 
+// Tělo: dítě ťukne na svou postavičku. Platí nejbližší část těla, aby stačilo ťuknout přibližně.
+// Místa jsou v souřadnicích postavičky (200 × 320, nahoře −20).
+const BODY_SPOTS = {
+  nose: [[100, 112]], eyes: [[76, 98], [124, 98]], mouth: [[100, 128]], ears: [[38, 106], [162, 106]],
+  hands: [[30, 216], [170, 216]], feet: [[78, 286], [122, 286]], tummy: [[100, 206]],
+};
+
+function renderBody(q, onPick) {
+  const host = $('choices');
+  host.dataset.count = 'body';
+  host.innerHTML = `<div class="body-pick"><img src="${portrait('child')}" alt=""></div>`;
+  const box = host.firstElementChild;
+  const marks = {};
+  for (const [part, spots] of Object.entries(BODY_SPOTS)) {
+    marks[part] = spots.map(([x, y]) => {
+      const m = document.createElement('button');
+      m.className = 'choice body-spot';
+      m.dataset.part = part;
+      m.dataset.right = `body-${part}` === q.answerId;
+      m.style.left = `${(x / 200) * 100}%`;
+      m.style.top = `${((y + 20) / 320) * 100}%`;
+      box.append(m);
+      return m;
+    });
+  }
+  box.addEventListener('click', (e) => {
+    const r = box.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 200;
+    const y = ((e.clientY - r.top) / r.height) * 320 - 20;
+    let best = null;
+    let dist = Infinity;
+    for (const [part, spots] of Object.entries(BODY_SPOTS)) {
+      spots.forEach(([sx, sy], i) => {
+        const d = Math.hypot(sx - x, sy - y);
+        if (d < dist) { dist = d; best = marks[part][i]; }
+      });
+    }
+    if (best) onPick(best);
+  });
+}
+
 function renderChoices(q, onPick) {
   const host = $('choices');
   host.innerHTML = '';
+  if (q.item.cat === 'body') return renderBody(q, onPick);
   host.dataset.count = q.choices.length;
   const tint = shapeTint();
   q.choices.forEach((choice) => {
@@ -362,7 +405,7 @@ function openParentPanel() {
 setChimes(state.sounds);
 setLang(state.lang);
 $('night').addEventListener('click', (e) => {
-  if (e.target.closest('#room-shelf, #album-btn')) return;
+  if (e.target.closest('#room-shelf, #album-btn, #night-task')) return;
   if (!state.locked) showStart();
 });
 $('room-shelf').addEventListener('click', bounce);

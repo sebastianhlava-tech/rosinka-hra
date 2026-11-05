@@ -18,7 +18,11 @@ Během hry podrž prst 3 sekundy v pravém horním rohu.
 
 Tady je Začít znovu, změna postav, délka hry, obtížnost, jazyk, průvodce, zvuky a přehled, co už dcera umí.
 
-Učení má stopy: Barvy, Zvířata, Věci, Tvary, Velký a malý, Počítání. Každá stopa se posouvá sama. V části Co už umí můžeš stopu posunout nebo vypnout.
+Učení má stopy: Barvy, Zvířata, Věci, Tvary, Protiklady (velký–malý, plný–prázdný, horký–studený), Počítání, Tělo, Jídlo, Doprava, Pocity, Písmena a Číslice. Každá stopa se posouvá a otevírá sama. V části Co už umí můžeš stopu posunout nebo vypnout.
+Písmena a Číslice se samy neotevřou. Zapne je rodič v části Co už umí (pro dvouleté dítě jsou brzo).
+Tělo: hlas se zeptá „Kde máš nos?“ a dítě ťukne na nos své postavičky. Stačí ťuknout přibližně.
+
+Úkol do světa: při Dobrou noc je vlevo nahoře malá karta pro rodiče, třeba „Zítra najděte doma 3 věci v barvě: červená.“ Bere pojem, který se dítě právě učí. Hlas ho neříká.
 
 Jazyk: Čeština, English, nebo Čeština + anglická slovíčka (otázka česky, po správné odpovědi zazní slovo anglicky).
 

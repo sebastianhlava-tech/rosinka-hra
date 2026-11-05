@@ -13,6 +13,16 @@ const size = (id, cs, en) => ({ id: `size-${id}`, cat: 'size', art: `size:${id}`
 const count = (n, text, en, word) => ({ id: `count-${n}`, cat: 'count', art: `count:${n}`, text, en, word });
 const sound = (id, cs, en) => ({ id: `sound-${id}`, cat: 'sound', answerId: `animal-${id}`, text: `Kdo dělá ${cs}?`, en: `Who says ${en}?` });
 function cap(s) { return s[0].toUpperCase() + s.slice(1); }
+// Fáze 7. Tělo nemá obrázek: dítě ťuká na svou postavičku.
+const body = (id, cs, en) => ({ id: `body-${id}`, cat: 'body', part: id, text: `Kde máš ${cs}?`, en: `Where is your ${en}?`, word: `${cap(en)}!` });
+const food = (id, cs, en) => ({ id: `food-${id}`, cat: 'food', art: id, text: `Kde je ${cs}?`, en: `Where is the ${en}?`, word: `${cap(en)}!` });
+const ride = (id, cs, en) => ({ id: `ride-${id}`, cat: 'ride', art: id, text: `Kde je ${cs}?`, en: `Where is the ${en}?`, word: `${cap(en)}!` });
+const feel = (id, cs, en) => ({ id: `feel-${id}`, cat: 'feel', art: id, text: `Kdo je ${cs}?`, en: `Who is ${en}?`, word: `${cap(en)}!` });
+const pair = (cat, id, art, text, en, word) => ({ id: `${cat}-${id}`, cat, art, text, en, word });
+const letter = (ch) => ({ id: `letter-${ch.toLowerCase()}`, cat: 'letter', art: `glyph:${ch}`, text: `Kde je písmeno ${ch}?`, en: `Where is the letter ${ch}?`, word: `${ch}!` });
+const NUM_CS = ['jedna', 'dva', 'tři', 'čtyři', 'pět'];
+const NUM_EN = ['one', 'two', 'three', 'four', 'five'];
+const digit = (n) => ({ id: `digit-${n}`, cat: 'digit', art: `glyph:${n}`, text: `Kde je číslo ${NUM_CS[n - 1]}?`, en: `Where is number ${NUM_EN[n - 1]}?`, word: `${cap(NUM_EN[n - 1])}!` });
 
 export const TRACKS = [
   { id: 'colors', label: 'Barvy', openAfter: 0, stages: [
@@ -34,11 +44,38 @@ export const TRACKS = [
   { id: 'shapes', label: 'Tvary', openAfter: 20, stages: [
     { answers: 3, items: [shape('circle', 'kruh', 'circle'), shape('square', 'čtverec', 'square'), shape('triangle', 'trojúhelník', 'triangle'), shape('star', 'hvězda', 'star'), shape('heart', 'srdce', 'heart')] },
   ] },
-  { id: 'opposites', label: 'Velký a malý', openAfter: 26, stages: [
+  { id: 'opposites', label: 'Protiklady', openAfter: 26, stages: [
     { answers: 2, items: [size('big', 'velký', 'big'), size('small', 'malý', 'small')] },
+    { answers: 2, items: [pair('cup', 'full', 'cupfull', 'Kde je plný hrnek?', 'Where is the full cup?', 'Full!'), pair('cup', 'empty', 'cupempty', 'Kde je prázdný hrnek?', 'Where is the empty cup?', 'Empty!')] },
+    { answers: 2, items: [pair('temp', 'hot', 'hot', 'Co je horké?', 'What is hot?', 'Hot!'), pair('temp', 'cold', 'cold', 'Co je studené?', 'What is cold?', 'Cold!')] },
   ] },
   { id: 'counting', label: 'Počítání', openAfter: 26, stages: [
     { answers: 3, items: [count(1, 'Kde je jedna hvězda?', 'Where is one star?', 'One!'), count(2, 'Kde jsou dvě hvězdy?', 'Where are two stars?', 'Two!'), count(3, 'Kde jsou tři hvězdy?', 'Where are three stars?', 'Three!')] },
+  ] },
+  { id: 'body', label: 'Tělo', openAfter: 30, stages: [
+    { answers: 4, items: [body('nose', 'nos', 'nose'), body('eyes', 'oči', 'eyes'), body('mouth', 'pusu', 'mouth'), body('ears', 'uši', 'ears')] },
+    { answers: 4, items: [body('hands', 'ruce', 'hands'), body('feet', 'nohy', 'feet'), body('tummy', 'bříško', 'tummy')] },
+  ] },
+  { id: 'food', label: 'Jídlo', openAfter: 34, stages: [
+    { answers: 3, items: [food('bread', 'chleba', 'bread'), food('milk', 'mléko', 'milk'), food('carrot', 'mrkev', 'carrot'), food('cheese', 'sýr', 'cheese')] },
+    { answers: 3, items: [food('egg', 'vajíčko', 'egg'), food('strawberry', 'jahoda', 'strawberry'), food('tomato', 'rajče', 'tomato'), food('pear', 'hruška', 'pear')] },
+  ] },
+  { id: 'rides', label: 'Doprava', openAfter: 40, stages: [
+    { answers: 3, items: [ride('bus', 'autobus', 'bus'), ride('train', 'vlak', 'train'), ride('plane', 'letadlo', 'plane'), ride('boat', 'loď', 'boat')] },
+    { answers: 3, items: [ride('bike', 'kolo', 'bike'), ride('tractor', 'traktor', 'tractor'), ride('helicopter', 'vrtulník', 'helicopter')] },
+  ] },
+  { id: 'feelings', label: 'Pocity', openAfter: 46, stages: [
+    { answers: 2, items: [feel('happy', 'veselý', 'happy'), feel('sad', 'smutný', 'sad')] },
+    { answers: 4, items: [feel('angry', 'naštvaný', 'angry'), feel('sleepy', 'ospalý', 'sleepy')] },
+  ] },
+  // Písmena a číslice jsou pro dvouleté dítě brzo. Otevře je jen rodič.
+  { id: 'letters', label: 'Písmena', manual: true, openAfter: Infinity, stages: [
+    { answers: 2, items: ['R', 'M', 'T', 'A'].map(letter) },
+    { answers: 3, items: ['O', 'E', 'S', 'L'].map(letter) },
+  ] },
+  { id: 'digits', label: 'Číslice', manual: true, openAfter: Infinity, stages: [
+    { answers: 2, items: [1, 2, 3].map(digit) },
+    { answers: 3, items: [4, 5].map(digit) },
   ] },
 ];
 
@@ -245,6 +282,37 @@ export function pickQuestion(p, rng = Math.random) {
   const t = trackOf(item.track);
   const n = t.stages[Math.max(1, stageOf(p, t.id)) - 1].answers;
   return { item, answerId, choices: shuffle([correct, ...others.slice(0, n - 1)], rng) };
+}
+
+// Jméno pojmu pro rodiče: „Kde je červená?“ → „červená“.
+export const itemName = (item) => item.text.replace(/^(Kde je písmeno|Kde je číslo|Kde je|Kde jsou|Kdo dělá|Kde máš|Kdo je|Co je) /, '').replace('?', '');
+
+// Úkol do světa: malá karta pro rodiče při Dobrou noc. Bere pojem, který se dítě právě učí.
+const TASKS = {
+  color: (n) => `Zítra najděte doma 3 věci v barvě: ${n}.`,
+  car: (n) => `Na procházce hledejte ${n} auto.`,
+  animal: (n) => `Najděte v knížce nebo venku: ${n}. Jak dělá?`,
+  sound: (n) => `Hrajte si na zvířátka: kdo dělá ${n}?`,
+  thing: (n) => `Najděte doma: ${n}. Pojmenujte to spolu.`,
+  shape: (n) => `Hledejte doma tvar: ${n} (talíř, okno, polštář…).`,
+  size: () => 'Porovnejte doma věci: co je velké a co malé?',
+  cup: () => 'Při pití ukažte: hrnek je plný, teď je prázdný.',
+  temp: () => 'Opatrně ukažte, co je teplé a co studené (čaj, led).',
+  count: () => 'Počítejte nahlas do tří: schody, lžičky, botičky.',
+  body: (n) => `Při oblékání se ptejte: kde máš ${n}?`,
+  food: (n) => `Při jídle nebo nákupu najděte: ${n}.`,
+  ride: (n) => `Na procházce hledejte: ${n}.`,
+  feel: (n) => `Řekněte nahlas, jak se cítíte. Třeba: jsem ${n}.`,
+  letter: (n) => `Hledejte na nápisech písmeno ${n}.`,
+  digit: (n) => `Hledejte na domech a ve výtahu číslo ${n}.`,
+};
+
+export function worldTask(p, rng = Math.random) {
+  const open = openTracks(p);
+  const list = ALL_ITEMS.filter((i) => open.some((t) => t.id === i.track) && i.stage <= Math.max(1, stageOf(p, i.track)));
+  const learning = list.filter((i) => itemStatus(p, i) === 'learning');
+  const item = pickOne(learning.length ? learning : list, rng);
+  return TASKS[item.cat](itemName(item));
 }
 
 // Po správné odpovědi: když dítě umí celý stupeň, stopa jde o stupeň dál.
