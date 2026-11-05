@@ -20,10 +20,11 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { SENTENCES, parseVoiceFile, voiceFileName } from '../js/questions.js';
 import { makeZip, readZip } from '../js/zip.js';
 
-const OUT = new URL('../voices/', import.meta.url).pathname;
+const OUT = fileURLToPath(new URL('../voices/', import.meta.url));
 const ZIP = join(OUT, 'rosinka-hlasy.zip');
 const args = process.argv.slice(2);
 const go = args.includes('--go');
