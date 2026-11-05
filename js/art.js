@@ -74,6 +74,16 @@ const ITEMS = {
   play: round(100, 100, 92, 92, '#3DAA4E') + '<path d="M74 54 L146 100 L74 146Z" fill="#fff" stroke="#fff" stroke-width="10" stroke-linejoin="round"/>',
   dice: '<rect x="24" y="24" width="152" height="152" rx="34" fill="#FF8A1F"/>' + [[62, 62], [138, 62], [100, 100], [62, 138], [138, 138]].map(([x, y]) => round(x, y, 14, 14, '#fff')).join(''),
   check: round(100, 100, 92, 92, '#3DAA4E') + '<path d="M54 104 L88 138 L150 66" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>',
+  balloon: '<path d="M100 144 q-18 26 6 54" fill="none" stroke="#888" stroke-width="4"/>' + round(100, 76, 56, 66, '#E23B3B') + '<path d="M92 140 h16 l-8 12z" fill="#B9202A"/>' + round(78, 50, 12, 20, 'rgba(255,255,255,.45)'),
+  lollipop: '<rect x="94" y="96" width="12" height="100" rx="6" fill="#F2EFE7"/>' + round(100, 72, 62, 62, '#FF8FC0') + '<path d="M100 72 m-44 0 a44 44 0 0 1 88 0 a32 32 0 0 1 -64 0 a20 20 0 0 1 40 0 a8 8 0 0 1 -16 0" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/>',
+  teddy: round(56, 46, 24, 24, '#B07A43') + round(144, 46, 24, 24, '#B07A43') + round(100, 150, 62, 50, '#C68A52') + round(100, 156, 34, 28, '#E9C6A0') + round(100, 76, 54, 50, '#C68A52') + round(100, 94, 24, 18, '#E9C6A0') + eyes(70, 22, 6) + round(100, 88, 8, 6, '#2b2b2b') + '<path d="M100 94 v8 M90 104 q10 6 20 0" fill="none" stroke="#2b2b2b" stroke-width="4" stroke-linecap="round"/>',
+  pinecone: [[100, 46], [80, 72], [120, 72], [72, 102], [100, 100], [128, 102], [80, 132], [120, 132], [100, 158]].map(([x, y]) => round(x, y, 24, 18, '#9A6A3A') + round(x, y + 5, 16, 9, '#7A4B28')).join('') + '<path d="M100 18 v18" stroke="#6B4324" stroke-width="8" stroke-linecap="round"/>',
+  cocoa: '<path d="M80 40 q-12 -14 0 -26 M104 40 q-12 -14 0 -26 M128 40 q-12 -14 0 -26" fill="none" stroke="#C9D1D8" stroke-width="6" stroke-linecap="round"/><path d="M146 86 q40 0 34 34 q-6 30 -38 26" fill="none" stroke="#2F6FDE" stroke-width="14"/><path d="M44 56 H156 L146 176 Q100 190 54 176Z" fill="#2F6FDE"/>' + round(100, 58, 56, 12, '#8A5A33') + round(80, 116, 10, 10, '#fff') + round(116, 136, 10, 10, '#fff') + round(124, 100, 8, 8, '#fff'),
+  sled: '<path d="M20 150 H170 q24 0 22 -26" fill="none" stroke="#E23B3B" stroke-width="10" stroke-linecap="round"/><path d="M50 150 V124 M146 150 V124" stroke="#E23B3B" stroke-width="10"/><rect x="30" y="98" width="140" height="28" rx="8" fill="#B07A43"/><path d="M64 98v28M100 98v28M136 98v28" stroke="#8A5A33" stroke-width="5"/>',
+  lantern: '<path d="M70 44 q30 -40 60 0" fill="none" stroke="#555" stroke-width="8"/><rect x="62" y="40" width="76" height="20" rx="6" fill="#555"/><rect x="66" y="58" width="68" height="104" rx="10" fill="#FFE58A"/>' + round(100, 110, 22, 30, '#FFB52E') + '<path d="M66 84 H134 M66 136 H134" stroke="#555" stroke-width="6"/><rect x="58" y="160" width="84" height="18" rx="6" fill="#555"/>',
+  stall: '<rect x="26" y="70" width="12" height="120" fill="#B07A43"/><rect x="162" y="70" width="12" height="120" fill="#B07A43"/>' + [0, 1, 2, 3, 4].map((i) => `<path d="M${10 + i * 36} 34 h36 v34 q-18 18 -36 0z" fill="${i % 2 ? '#fff' : '#E23B3B'}"/>`).join('') + '<rect x="6" y="20" width="188" height="18" rx="6" fill="#B9202A"/><rect x="14" y="126" width="172" height="66" rx="8" fill="#C99A5B"/><rect x="14" y="126" width="172" height="14" rx="6" fill="#E0B878"/>',
+  book: '<path d="M100 46 Q60 24 14 36 V170 Q60 158 100 180Z" fill="#FF8FC0"/><path d="M100 46 Q140 24 186 36 V170 Q140 158 100 180Z" fill="#8FC8F2"/><path d="M100 46 V180" stroke="#fff" stroke-width="5"/>' + round(56, 100, 18, 18, '#FFD432') + round(144, 100, 18, 18, '#3DAA4E'),
+  arrow: round(100, 100, 92, 92, '#EDF0F4') + '<path d="M50 100 H146 M110 62 L148 100 L110 138" fill="none" stroke="#667" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>',
   tablet: '<g transform="rotate(90 100 100)"><rect x="50" y="20" width="100" height="160" rx="14" fill="#333"/><rect x="60" y="32" width="80" height="136" fill="#BFE3F5"/></g>',
 };
 
@@ -96,7 +106,13 @@ const recolor = (body, color) => body.replace(/fill="#[0-9A-Fa-f]{6}"/, `fill="$
 
 export const shapeTint = (rng = Math.random) => SHAPE_FILLS[Math.floor(rng() * SHAPE_FILLS.length)];
 
+// Zmrzlina: počet kopečků = cena, aby dítě vidělo, co počítá.
+const SCOOPS = ['#FF8FC0', '#9BE3C4', '#FFE58A'];
+const icecream = (n) => '<path d="M66 112 L100 194 L134 112Z" fill="#E8B46A"/><path d="M76 124 L118 168 M124 124 L84 168" stroke="#C9904A" stroke-width="4"/>'
+  + SCOOPS.slice(0, n).map((c, i) => round(100, 102 - i * 32, 40, 34, c)).join('');
+
 export function artSvg(key, tint) {
+  if (key.startsWith('icecream')) return svg(icecream(Number(key.slice(8))));
   if (key.startsWith('color:')) return swatch(key.slice(6));
   if (key.startsWith('shape:')) return svg(recolor(ITEMS[key.slice(6)], tint ?? '#2F6FDE'));
   if (key.startsWith('car:')) return svg(ITEMS.car.replaceAll('#E23B3B', COLORS[key.slice(4)]));

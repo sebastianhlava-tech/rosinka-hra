@@ -2,6 +2,7 @@
 // Učení má stopy (barvy, zvířata…). Každá stopa má vlastní stupně.
 // Nový pojem = nový řádek ve stopě. Obrázek k němu patří do art.js.
 // Id otázek se nesmí měnit: podle nich se hledají nahrávky hlasu.
+import { SHOP_LINES } from './shop.js';
 
 const color = (id, cs, en) => ({ id: `color-${id}`, cat: 'color', art: `color:${id}`, text: `Kde je ${cs}?`, en: `Where is ${en}?`, word: `${cap(en)}!` });
 const car = (id, cs, en) => ({ id: `car-${id}`, cat: 'car', art: `car:${id}`, text: `Kde je ${cs} auto?`, en: `Where is the ${en} car?`, word: `${cap(en)} car!` });
@@ -78,7 +79,9 @@ const sentence = (id, lang, text, group, stage = 0) => ({ key: sentenceKey(id, l
 export const SENTENCES = [
   ...COMMON.map(([id, cs]) => sentence(id, 'cs', cs, 'common')),
   ...ALL_ITEMS.map((i) => sentence(i.id, 'cs', i.text, i.track, i.stage)),
+  ...SHOP_LINES.map(([id, cs]) => sentence(id, 'cs', cs, 'shop')),
   ...COMMON.map(([id, , en]) => sentence(id, 'en', en, 'common')),
+  ...SHOP_LINES.map(([id, , en]) => sentence(id, 'en', en, 'shop')),
   ...ALL_ITEMS.map((i) => sentence(i.id, 'en', i.en, i.track, i.stage)),
   ...ALL_ITEMS.filter((i) => i.word).map((i) => sentence(`word-${i.id}`, 'en', i.word, i.track, i.stage)),
 ];

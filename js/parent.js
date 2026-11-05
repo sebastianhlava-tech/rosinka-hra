@@ -93,12 +93,12 @@ function voiceRow(s, kind, play = () => say(s.id, kind, s.lang)) {
 function voiceSection(root, progress, kind) {
   const host = root.querySelector('.voice-list');
   host.innerHTML = '';
-  const groups = [{ label: 'Společné věty', id: 'common' }, ...TRACKS.map((t) => ({ label: t.label, id: t.id }))];
+  const groups = [{ label: 'Společné věty', id: 'common' }, { label: 'Krámek', id: 'shop' }, ...TRACKS.map((t) => ({ label: t.label, id: t.id }))];
   for (const g of groups) {
     const box = document.createElement('details');
     box.open = g.id === 'common';
     box.innerHTML = `<summary>${g.label}</summary>`;
-    SENTENCES.filter((s) => s.group === g.id && s.lang === recLang && (g.id === 'common' || stageOf(progress, g.id) >= s.stage))
+    SENTENCES.filter((s) => s.group === g.id && s.lang === recLang && (g.id === 'common' || g.id === 'shop' || stageOf(progress, g.id) >= s.stage))
       .forEach((s) => box.append(voiceRow(s, kind)));
     host.append(box);
   }
@@ -130,6 +130,7 @@ function panel(root, state, api) {
         <label>Průvodce <select class="guide">${guides}</select></label>
         <label><input type="checkbox" class="lock-night" ${state.lockNight ? 'checked' : ''}> Po Dobrou noc zamknout</label>
         <label><input type="checkbox" class="sounds" ${state.sounds ? 'checked' : ''}> Zvuky hry</label>
+        <label><input type="checkbox" class="shops" ${state.shops ? 'checked' : ''}> Krámky (hvězdiček: ${state.stars})</label>
         <button class="reset">Smazat postup</button>
       </section>
       <section><h3>Nahrát hlas</h3>
@@ -169,6 +170,7 @@ function panel(root, state, api) {
   ['child', 'mom', 'dad'].forEach((kind) => { $(`.change-${kind}`).onclick = () => api.changeCharacter(kind); });
   $('.lock-night').onchange = (e) => { state.lockNight = e.target.checked; api.save(); };
   $('.sounds').onchange = (e) => { state.sounds = e.target.checked; api.save(); };
+  $('.shops').onchange = (e) => { state.shops = e.target.checked; api.save(); };
   $('.guide').onchange = (e) => { state.guide = e.target.value; api.save(); };
   $('.minutes').onchange = (e) => { state.minutes = Number(e.target.value); api.save(); };
   $('.lang').onchange = (e) => { state.lang = e.target.value; api.save(); };

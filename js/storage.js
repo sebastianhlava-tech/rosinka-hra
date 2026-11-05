@@ -13,6 +13,10 @@ const defaults = () => ({
   sounds: true,
   lang: 'cs',
   locked: false,
+  shops: true,
+  stars: 0,
+  starBits: 0,
+  room: [],
   progress: newProgress(),
 });
 

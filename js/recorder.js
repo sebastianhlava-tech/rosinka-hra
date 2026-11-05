@@ -6,7 +6,7 @@ const NAMES = { mom: 'Maminka', dad: 'Tatínek' };
 
 // Nejdřív společné věty, pak to, co se dítě právě učí, nakonec zbytek.
 function missing(kind, lang, progress) {
-  const rank = (s) => (s.group === 'common' ? 0 : s.stage <= stageOf(progress, s.group) ? s.stage : 10 + s.stage);
+  const rank = (s) => (s.group === 'common' || s.group === 'shop' ? 0 : s.stage <= stageOf(progress, s.group) ? s.stage : 10 + s.stage);
   return SENTENCES.filter((s) => s.lang === lang && !hasClip(kind, s.key)).sort((a, b) => rank(a) - rank(b));
 }
 

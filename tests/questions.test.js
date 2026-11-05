@@ -24,7 +24,7 @@ test('každá věta má češtinu i angličtinu a jedinečný klíč', () => {
   assert.equal(new Set(keys).size, keys.length);
   const cs = SENTENCES.filter((s) => s.lang === 'cs');
   const en = SENTENCES.filter((s) => s.lang === 'en');
-  assert.equal(cs.length, 82);
+  assert.equal(cs.length, 111);
   cs.forEach((s) => assert.ok(en.some((e) => e.id === s.id && e.text), s.id));
   assert.ok(cs.every((s) => s.key === s.id), 'česká věta má starý klíč');
   ALL_ITEMS.forEach((i) => assert.ok(SENTENCES.some((s) => s.key === `en:word-${i.answerId ?? i.id}`), i.id));

@@ -1,6 +1,7 @@
 // Svět na Canvasu: chůze, skok, překážky, hvězdy, dárky, vylepšení a čas hry.
 import { artSvg, loadImage } from './art.js';
 import { BIOMES } from './biomes.js';
+import { SHOPS } from './shop.js';
 
 const VIEW_H = 800;
 const GROUND = 650;
@@ -24,7 +25,10 @@ const STAR_GAP = 1100;
 const MAGNET_REACH = 460;
 const MAX_SPARKS = 120;
 const FRIEND_PLACES = [-130, -235, 170];
-const ART = [...new Set(BIOMES.flatMap((b) => [b.decor, ...b.obstacles.map((o) => o.art)]))];
+const SHOP_FIRST = 60;
+const SHOP_EVERY = 120;
+const SHOP_W = 300;
+const ART = [...new Set([...BIOMES.flatMap((b) => [b.decor, ...b.obstacles.map((o) => o.art)]), ...Object.values(SHOPS).map((s) => s.seller), 'stall'])];
 const RAINBOW = ['#E23B3B', '#FF8A1F', '#FFD432', '#3DAA4E', '#2F6FDE', '#8E4EC6'];
 
 const between = ([a, b]) => a + Math.random() * (b - a);
@@ -89,6 +93,9 @@ export class World {
     this.birds = [];
     this.stars = [];
     this.gift = null;
+    this.shop = null;
+    this.nextShop = SHOP_FIRST;
+    this.hand = null;
     this.nextStone = 800;
     this.nextGift = GIFT_FIRST;
     this.nextStar = 1000;
@@ -142,6 +149,10 @@ export class World {
     this.state = 'walk';
   }
 
+  async setHand(art) {
+    this.hand = art ? bake(await loadImage(artSvg(art))) : null;
+  }
+
   async giveUpgrade(kind, friendArt, maxFriends) {
     if (kind === 'party') this.burst();
     else this.upgrades.add(kind);
@@ -163,6 +174,17 @@ export class World {
 
   spawn() {
     const edge = this.dist + this.viewW + 150;
+    // Krámek: asi jednou za 2 minuty, jen když je co koupit. Kolem něj nejsou překážky ani dárek.
+    if (!this.shop && this.elapsed >= this.nextShop) {
+      this.nextShop = this.elapsed + SHOP_EVERY;
+      if (this.handlers.canShop?.()) {
+        const x = Math.max(edge, (this.gift?.x ?? 0) + 600);
+        this.shop = { x, biome: BIOMES[this.biome].id, done: false };
+        this.nextGift = Math.max(this.nextGift, x + SHOP_W + 900);
+        this.nextStone = Math.max(this.nextStone, x + SHOP_W + 500);
+        this.stones = this.stones.filter((s) => s.x + s.w < x - 300);
+      }
+    }
     if (edge >= this.nextGift) {
       this.gift = { x: this.nextGift, y: 0 };
       this.nextGift += between(GIFT_GAP);
@@ -264,6 +286,16 @@ export class World {
     }
   }
 
+  checkShop() {
+    if (!this.shop) return;
+    if (this.shop.x + SHOP_W < this.dist - 100) this.shop = null;
+    else if (!this.shop.done && this.dist + HERO_X + HERO_W >= this.shop.x + 70) {
+      this.shop.done = true;
+      this.state = 'shop';
+      this.handlers.onShop(this.shop.biome);
+    }
+  }
+
   changeBiome() {
     const next = Math.floor(this.dist / BIOME_LENGTH) % BIOMES.length;
     if (next === this.biome) return;
@@ -286,7 +318,7 @@ export class World {
     this.size += (target - this.size) * Math.min(1, dt * 3);
     this.fade = Math.max(0, this.fade - dt);
 
-    if (this.state === 'question') return;
+    if (this.state === 'question' || this.state === 'shop') return;
 
     if (this.state === 'bump') {
       this.bumpLeft -= dt;
@@ -300,6 +332,7 @@ export class World {
       this.checkBirds();
       this.checkStars(dt);
       this.checkGift();
+      this.checkShop();
       this.growFlowers();
       if (this.has('sparkle') && Math.random() < dt * 14) this.spark(this.dist + HERO_X + 40, GROUND - this.y - 60 - Math.random() * 120, RAINBOW[Math.floor(Math.random() * 6)], 6);
     }
@@ -313,7 +346,7 @@ export class World {
       if (this.trail.length > 70) this.trail.shift();
     }
 
-    if (this.elapsed >= this.limit && this.state !== 'question') {
+    if (this.elapsed >= this.limit && this.state === 'walk') {
       this.state = 'night';
       this.running = false;
       this.handlers.onTimeUp();
@@ -402,6 +435,13 @@ export class World {
       });
     });
     c.globalAlpha = 1;
+    if (this.shop) {
+      const x = this.shop.x - this.dist;
+      const seller = this.images[SHOPS[this.shop.biome].seller];
+      const nod = Math.sin(this.elapsed * 2) * 4;
+      c.drawImage(seller, x + 90, GROUND - 216 + nod, 120, 120);
+      c.drawImage(this.images.stall, x, GROUND - SHOP_W, SHOP_W, SHOP_W);
+    }
     this.stars.forEach((s) => {
       const size = 62 + Math.sin(this.elapsed * 3 + s.x) * 6;
       c.drawImage(this.images.star, s.x - this.dist - size / 2, GROUND - s.a - size / 2, size, size);
@@ -463,6 +503,7 @@ export class World {
     c.translate(HERO_X + HERO_W / 2, GROUND - this.y + 12 - bob);
     c.rotate(tilt);
     c.drawImage(this.hero, -w / 2, -h, w, h);
+    if (this.hand) c.drawImage(this.hand, w * 0.18, -h * 0.62, 96 * this.size, 96 * this.size);
     c.restore();
 
     const middle = GROUND - this.y - h / 2;
@@ -476,6 +517,33 @@ export class World {
       c.stroke();
     }
     if (this.has('butterfly')) this.drawButterflies(c, HERO_X + HERO_W / 2, middle);
+  }
+
+  // Peněženka nahoře uprostřed: do 10 jako jednotlivé hvězdy, potom hvězda s číslem pro rodiče.
+  drawWallet(c) {
+    const n = this.wallet ?? 0;
+    if (!n) return;
+    const size = 46;
+    const shown = Math.min(n, 10);
+    const w = n > 10 ? size * 2.6 : shown * size + 16;
+    const x = (this.viewW - w) / 2;
+    const grow = 1 + Math.max(0, this.walletPulse ?? 0) * 0.25;
+    c.fillStyle = 'rgba(255,255,255,.75)';
+    c.beginPath();
+    if (c.roundRect) c.roundRect(x - 8, 14, w + 16, size + 20, 30);
+    else c.rect(x - 8, 14, w + 16, size + 20);
+    c.fill();
+    if (n > 10) {
+      c.drawImage(this.images.star, x + 8, 24, size * grow, size * grow);
+      c.fillStyle = '#6b5536';
+      c.font = 'bold 40px system-ui, sans-serif';
+      c.fillText(String(n), x + size + 18, 62);
+      return;
+    }
+    for (let i = 0; i < shown; i++) {
+      const s = i === shown - 1 ? size * grow : size;
+      c.drawImage(this.images.star, x + 8 + i * size + (size - s) / 2, 24 + (size - s) / 2, s, s);
+    }
   }
 
   frame(t) {
@@ -496,6 +564,8 @@ export class World {
     this.drawThings(c);
     this.drawHero(c);
     this.drawSparks(c);
+    this.walletPulse = Math.max(0, (this.walletPulse ?? 0) - dt * 2);
+    this.drawWallet(c);
     if (this.running) requestAnimationFrame((n) => this.frame(n));
   }
 }

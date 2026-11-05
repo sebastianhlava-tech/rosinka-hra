@@ -63,11 +63,42 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 .pulse { animation: breathe 1.6s ease-in-out infinite; }
 .glow { outline: 10px solid #3DAA4E; }
 
+/* Krámek */
+#shop { position: absolute; inset: 0; background: rgba(255,246,229,.82); animation: fade .4s ease-out; }
+.shop-seller { position: absolute; left: 3vw; bottom: 4vh; width: min(40vh, 26vw); height: min(40vh, 26vw); animation: sway 3s ease-in-out infinite; transform-origin: bottom center; }
+.shop-skip { position: absolute; right: 3vw; top: 3vh; width: 13vh; height: 13vh; }
+.shop-counter { position: absolute; left: 30vw; right: 3vw; top: 12vh; display: flex; gap: 2.5vw; justify-content: center; }
+.shop-item { width: min(42vh, 21vw); background: #fff; border-radius: 30px; padding: 2vh 1.5vh 1.5vh; box-shadow: 0 4px 12px rgba(0,0,0,.12); display: flex; flex-direction: column; align-items: center; gap: 1vh; border: 6px solid #fff; transition: transform .2s, opacity .2s; }
+.shop-art { display: block; width: 82%; aspect-ratio: 1; }
+.shop-art svg, .shop-skip svg, .shop-seller svg { width: 100%; height: 100%; }
+.shop-price { display: flex; gap: .6vh; }
+.shop-price i { width: 6.5vh; height: 6.5vh; opacity: .35; }
+.shop-price i svg { width: 100%; height: 100%; }
+.shop-price i.paid { opacity: 1; }
+.shop-item.chosen { border-color: #3DAA4E; transform: translateY(-1vh); }
+.shop-item.chosen .shop-price i:not(.paid) { opacity: .35; animation: breathe 1.6s ease-in-out infinite; }
+.shop-item.dear { opacity: .45; }
+.shop-item.bought { animation: hop .5s ease-out 2; }
+.shop-wallet { position: absolute; left: 30vw; right: 3vw; bottom: 5vh; display: flex; flex-wrap: wrap; gap: 1vw; justify-content: center; }
+.shop-star { width: 12vh; height: 12vh; }
+.shop-star svg { width: 100%; height: 100%; }
+
 /* Dobrou noc */
 #night { background: #24325E; display: flex; align-items: flex-end; justify-content: center; gap: 2vw; padding-bottom: 12vh; }
 .night-scene { position: relative; width: 56vh; height: 56vh; }
 #night-bed { width: 100%; height: 100%; }
 #night-hero { position: absolute; height: 48%; left: 14%; top: 24%; transform: rotate(82deg); }
+#room-shelf { position: absolute; top: 9vh; left: 50%; transform: translateX(-50%); display: flex; gap: 1.5vw; padding: 1.5vh 2vw 0; border-bottom: 2.4vh solid #8A5A33; border-radius: 4px; }
+.room-item { width: 14vh; height: 14vh; }
+.room-item svg, .sticker svg { width: 100%; height: 100%; }
+.room-item.hop, .sticker.hop { animation: hop .4s ease-out; }
+#album-btn { position: absolute; right: 3vw; bottom: 4vh; width: 15vh; height: 15vh; }
+#album-btn img, #album-close img { width: 100%; height: 100%; }
+#album { position: fixed; inset: 0; z-index: 15; background: #FFF6E5; overflow-y: auto; touch-action: pan-y; padding: 4vh 4vw; }
+#album-close { position: fixed; right: 3vw; top: 3vh; width: 12vh; height: 12vh; z-index: 1; }
+#album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16vh, 1fr)); gap: 2vh; padding-right: 14vh; }
+.sticker { aspect-ratio: 1; background: #fff; border-radius: 50%; padding: 2vh; box-shadow: 0 3px 8px rgba(0,0,0,.12); border: 5px solid #fff; }
+.sticker.empty { background: none; box-shadow: none; border: 5px dashed #E0CFAE; }
 
 /* Rodič */
 #corner { position: fixed; top: 0; right: 0; width: 90px; height: 90px; z-index: 20; }

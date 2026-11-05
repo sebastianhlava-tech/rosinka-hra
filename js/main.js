@@ -4,7 +4,9 @@ import { DIFFICULTIES, MAX_FRIENDS, nextUpgrade } from './biomes.js';
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
-import { pickQuestion, playLevel, recordAnswer } from './questions.js';
+import { ALL_ITEMS, itemStatus, pickQuestion, playLevel, recordAnswer } from './questions.js';
+import { ANSWER_STARS, ROOM_ITEMS, addRunStar, addStars } from './shop.js';
+import { openShop } from './shopview.js';
 import { characterOf, loadState, saveState } from './storage.js';
 import { chime, initVoice, isSpeaking, kidSound, say, setChimes, setLang, setSpeaker, stopVoice, unlockAudio } from './voice.js';
 import { World } from './world.js';
@@ -42,9 +44,28 @@ const world = new World($('canvas'), {
   onBump: () => { chime(220); if (!kidSound('bump')) say('bum'); },
   onTimeUp: goToBed,
   onBiome: (id) => say(`place-${id}`),
-  onStar: () => chime(1040),
+  onStar: () => {
+    chime(1040);
+    if (addRunStar(state)) earned();
+  },
+  canShop: () => state.shops && state.stars >= 1,
+  onShop: (biome) => openShop($('shop'), biome, state, async (item) => {
+    save();
+    world.wallet = state.stars;
+    if (item?.kind === 'hand') await world.setHand(item.art);
+    if (item) world.burst();
+    world.resumeAfterQuestion();
+  }),
   onNote: () => chime(NOTES[noteTurn++ % NOTES.length]),
 });
+
+// Nová hvězdička v peněžence: krátce se zvětší a cinkne.
+function earned() {
+  save();
+  world.wallet = state.stars;
+  world.walletPulse = 1;
+  chime(1320);
+}
 
 function show(id) {
   ['start', 'creator', 'game', 'night'].forEach((s) => { $(s).hidden = s !== id; });
@@ -99,8 +120,32 @@ function goToBed() {
   stopVoice();
   $('night-hero').src = portrait('child');
   setFamily('night');
+  renderRoom();
   show('night');
   say('night');
+}
+
+// Pokojíček: věci z krámku na poličce. Ťuknutí na věc ji nechá poskočit.
+function renderRoom() {
+  $('room-shelf').innerHTML = ROOM_ITEMS.filter((it) => state.room.includes(it.id))
+    .map((it) => `<button class="room-item">${artSvg(it.art)}</button>`).join('');
+  $('room-shelf').hidden = !state.room.length;
+}
+
+// Album samolepek: každý naučený pojem je samolepka. Ostatní místa čekají.
+function openAlbum() {
+  $('album-grid').innerHTML = ALL_ITEMS.filter((i) => i.art).map((i) => (itemStatus(state.progress, i) === 'known'
+    ? `<button class="sticker">${artSvg(i.art, '#2F6FDE')}</button>`
+    : '<span class="sticker empty"></span>')).join('');
+  $('album').hidden = false;
+}
+
+function bounce(e) {
+  const b = e.target.closest('.room-item, .sticker');
+  if (!b || b.classList.contains('empty')) return;
+  b.classList.remove('hop');
+  void b.offsetWidth;
+  b.classList.add('hop');
 }
 
 function showCreator(kind, after) {
@@ -118,6 +163,7 @@ async function play() {
   await world.load(markup('child'));
   show('game');
   world.start(state.minutes, playLevel(state.progress), DIFFICULTIES[state.difficulty]);
+  world.wallet = state.stars;
 }
 
 function renderChoices(q, onPick) {
@@ -147,7 +193,8 @@ function askQuestion() {
     finished = true;
     recordAnswer(state.progress, q.item.id, wrong === 0);
     world.setLevel(playLevel(state.progress));
-    save();
+    addStars(state, ANSWER_STARS);
+    earned();
     document.querySelectorAll('.choice').forEach((b) => { b.disabled = true; });
     rightButton().classList.add('glow');
     chime(880);
@@ -210,6 +257,7 @@ function openParentPanel() {
       world.stop();
       stopVoice();
       $('question').hidden = true;
+      $('shop').hidden = true;
       state.locked = false;
       save();
       showStart();
@@ -219,6 +267,7 @@ function openParentPanel() {
       world.stop();
       stopVoice();
       $('question').hidden = true;
+      $('shop').hidden = true;
       showCreator(kind, () => (state.locked ? goToBed() : showStart()));
     },
   });
@@ -226,7 +275,16 @@ function openParentPanel() {
 
 setChimes(state.sounds);
 setLang(state.lang);
-$('night').addEventListener('click', () => { if (!state.locked) showStart(); });
+$('night').addEventListener('click', (e) => {
+  if (e.target.closest('#room-shelf, #album-btn')) return;
+  if (!state.locked) showStart();
+});
+$('room-shelf').addEventListener('click', bounce);
+$('album-grid').addEventListener('click', bounce);
+$('album-btn').addEventListener('click', openAlbum);
+$('album-close').addEventListener('click', () => { $('album').hidden = true; });
+$('album-btn').querySelector('img').src = svgToDataUrl(artSvg('book'));
+$('album-close').querySelector('img').src = svgToDataUrl(artSvg('check'));
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('game').hidden) keepAwake(); });
 $('play').addEventListener('click', play);
 $('parent-btn').addEventListener('click', openParentPanel);

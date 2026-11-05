@@ -38,6 +38,21 @@ Každý má svoje věty. Česky je 82 vět na osobu, anglicky 131. Jazyk vět vy
 Když věta chybí, hraje nahrávka druhého rodiče, potom hlas tabletu.
 Nahrávky jsou jen v tomto iPadu a nemají zálohu. Když smažeš ikonu hry, nahrávky zmizí.
 
+## Hvězdičky, krámek a pokojíček
+
+Hvězdičky jsou peníze ve hře. Za správnou odpověď přibude 1. Za každých 20 sebraných hvězd na cestě přibude 1. Nikdy se neztratí.
+Počet je nahoře uprostřed. Nad 10 hvězd je tam jedna hvězda s číslem.
+
+Asi jednou za 2 minuty stojí u cesty krámek. Každé místo má svůj: ovoce, lesní stánek, zmrzlinárna, zimní stánek, hračkářství, noční stánek.
+1. Dítě ťukne na věc. Hlas řekne cenu (1, 2 nebo 3 hvězdičky).
+2. Dítě ťuká na hvězdičky dole. Hlas počítá: „Jedna. Dvě.“
+3. Když je hvězdiček dost, prodavač poděkuje a dá věc.
+Šipka vpravo nahoře krámek přeskočí. Krámek se neukáže, když nejsou žádné hvězdičky.
+
+Věc do ruky drží postavička do konce hry. Věc do pokojíčku je na poličce u postýlky při Dobrou noc.
+Knížka vpravo dole při Dobrou noc otevře album samolepek: každý naučený pojem je jedna samolepka.
+Krámky vypneš v Pro rodiče (Krámky). Věty krámku nahraješ ve skupině Krámek.
+
 ## Hlas Rosinky
 
 V Pro rodiče, v části Hlas Rosinky, nahraj krátké zvuky: skok („hop!“), náraz („bum!“ nebo „au!“) a dárek („jé!“).
