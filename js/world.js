@@ -29,6 +29,11 @@ const EAT_TIME = 25;
 const BALLOON_GRAVITY = 0.68;
 const HIGH_STAR = 530;
 const APPLE_GAP = [700, 1100];
+const RAINBOW_TIME = 14;
+const FLASH_TIME = 1.4;
+const PARTY_TIME = 5;
+const BG_SIZE = 120;
+const BG_ANIMALS = [...new Set(BIOMES.flatMap((b) => b.animals ?? []))];
 const SHOP_FIRST = 60;
 const SHOP_EVERY = 120;
 const SHOP_W = 300;
@@ -58,13 +63,18 @@ export class World {
     this.last = 0;
     this.resize();
     addEventListener('resize', () => this.resize());
-    canvas.addEventListener('pointerdown', (e) => { e.preventDefault(); this.tap(); });
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const art = this.running && !this.paused && this.animalAt(e.clientX / innerWidth * this.viewW, e.clientY / innerHeight * VIEW_H);
+      if (art) this.handlers.onAnimalTap?.(art);
+      this.tap();
+    });
   }
 
   async load(characterMarkup) {
     this.hero = await loadImage(characterMarkup);
     if (this.images.gift) return;
-    await Promise.all([...ART, 'gift', 'star', 'bird', 'flower', 'apple', 'basket'].map(async (key) => {
+    await Promise.all([...new Set([...ART, ...BG_ANIMALS, 'gift', 'star', 'bird', 'flower', 'apple', 'basket', 'umbrella'])].map(async (key) => {
       this.images[key] = bake(await loadImage(artSvg(key)));
     }));
   }
@@ -77,7 +87,18 @@ export class World {
     this.viewW = this.canvas.width / this.scale;
   }
 
-  start(minutes, level, difficulty) {
+  // firstBiome = místo, které dítě vybralo na mapě výletu.
+  start(minutes, level, difficulty, firstBiome = 0) {
+    this.firstBiome = firstBiome;
+    this.weather = 'sun';
+    this.rainbowLeft = 0;
+    this.flash = 0;
+    this.nextFlash = 8;
+    this.nextDrop = 0;
+    this.bgAnimal = null;
+    this.nextAnimal = 12;
+    this.partyLeft = 0;
+    this.balloons = [];
     this.level = level;
     this.difficulty = difficulty;
     this.limit = minutes ? minutes * 60 : Infinity;
@@ -112,7 +133,8 @@ export class World {
     this.nextGift = GIFT_FIRST;
     this.nextStar = 1000;
     this.nextFlower = 0;
-    this.biome = 0;
+    this.biome = firstBiome;
+    this.weather = this.handlers.pickWeather?.(BIOMES[firstBiome]) ?? 'sun';
     this.oldBiome = null;
     this.fade = 0;
     this.running = true;
@@ -177,6 +199,7 @@ export class World {
   async giveUpgrade(kind, friendArt, maxFriends) {
     if (kind === 'party') this.burst();
     else this.upgrades.add(kind);
+    if (kind === 'umbrella') this.weather = this.forcedWeather() ?? this.weather;
     if (kind === 'friend' && this.friends.length < maxFriends) {
       this.friends.push(await loadImage(artSvg(friendArt)));
       this.tempFriends = (this.tempFriends ?? 0) + 1;
@@ -361,13 +384,70 @@ export class World {
   }
 
   changeBiome() {
-    const next = Math.floor(this.dist / BIOME_LENGTH) % BIOMES.length;
+    const next = (Math.floor(this.dist / BIOME_LENGTH) + this.firstBiome) % BIOMES.length;
     if (next === this.biome) return;
     this.oldBiome = this.biome;
     this.biome = next;
     this.fade = FADE_TIME;
     this.appleCount = 0;
-    this.handlers.onBiome(BIOMES[next].id);
+    this.bgAnimal = null;
+    const wasRain = this.weather === 'rain' || this.weather === 'storm';
+    this.weather = this.forcedWeather() ?? this.handlers.pickWeather?.(BIOMES[next]) ?? 'sun';
+    // Po dešti je vždy duha.
+    if (wasRain && this.weather !== 'rain' && this.weather !== 'storm') this.rainbowLeft = RAINBOW_TIME;
+    this.handlers.onBiome(BIOMES[next].id, this.rainbowLeft > 0 ? 'rainbow' : this.weather);
+  }
+
+  // Deštník: když neprší, začne pršet, aby měl k čemu být.
+  forcedWeather() {
+    if (!this.has('umbrella') || BIOMES[this.biome].id === 'snow' || BIOMES[this.biome].id === 'dusk') return null;
+    return this.weather === 'storm' ? 'storm' : 'rain';
+  }
+
+  // Počasí: kapky pod deštníkem se mění na hvězdy, bouřka občas jemně blikne.
+  updateWeather(dt) {
+    this.rainbowLeft = Math.max(0, (this.rainbowLeft ?? 0) - dt);
+    const wet = this.weather === 'rain' || this.weather === 'storm';
+    if (wet && this.has('umbrella') && this.elapsed >= (this.nextDrop ?? 0)) {
+      this.stars.push({ x: this.dist + HERO_X + 260 + Math.random() * 200, a: 140 + Math.random() * 60 });
+      this.nextDrop = this.elapsed + 1.6;
+    }
+    if (this.weather === 'storm') {
+      this.flash = Math.max(0, (this.flash ?? 0) - dt);
+      if (this.elapsed >= (this.nextFlash ?? 8)) {
+        this.flash = FLASH_TIME;
+        this.nextFlash = this.elapsed + 10 + Math.random() * 6;
+        this.handlers.onThunder?.();
+      }
+    }
+  }
+
+  // Zvířátko v pozadí: nejvýš jedno, další až po 15–20 s. Za ťuknutí není odměna.
+  updateAnimal() {
+    if (!this.handlers.bgAnimals?.()) return;
+    const near = this.dist * 0.5;
+    if (this.bgAnimal && this.bgAnimal.x - near < -200) {
+      this.bgAnimal = null;
+      this.nextAnimal = this.elapsed + 15 + Math.random() * 5;
+    }
+    if (this.bgAnimal || this.elapsed < (this.nextAnimal ?? 12)) return;
+    const list = BIOMES[this.biome].animals ?? [];
+    if (!list.length) return;
+    this.bgAnimal = { art: list[Math.floor(Math.random() * list.length)], x: near + this.viewW + 80 };
+  }
+
+  animalAt(x, y) {
+    const a = this.bgAnimal;
+    if (!a) return null;
+    const sx = a.x - this.dist * 0.5;
+    return x >= sx && x <= sx + BG_SIZE && y >= GROUND - BG_SIZE - 20 && y <= GROUND ? a.art : null;
+  }
+
+  // Oslava: balónky letí nahoru a konfety. Trvá 5 sekund.
+  celebrate() {
+    this.partyLeft = PARTY_TIME;
+    this.balloons = Array.from({ length: 9 }, (_, i) => ({ x: 120 + (i * 137) % Math.max(400, this.viewW - 240), y: VIEW_H + 60 + (i % 3) * 90, c: RAINBOW[i % 6], v: 110 + (i % 4) * 25 }));
+    this.burst();
   }
 
   growFlowers() {
@@ -403,10 +483,16 @@ export class World {
       this.checkApples();
       this.eat(dt);
       this.growFlowers();
+      this.updateWeather(dt);
+      this.updateAnimal();
       if (this.has('sparkle') && Math.random() < dt * 14) this.spark(this.dist + HERO_X + 40, GROUND - this.y - 60 - Math.random() * 120, RAINBOW[Math.floor(Math.random() * 6)], 6);
     }
 
     this.flowers.forEach((f) => { f.age += dt; });
+    this.wind = (this.wind ?? 0) + dt * (this.weather === 'wind' ? 90 : 0);
+    this.partyLeft = Math.max(0, (this.partyLeft ?? 0) - dt);
+    this.balloons?.forEach((b) => { b.y -= b.v * dt; });
+    if (this.partyLeft > 0 && Math.random() < dt * 6) this.spark(this.dist + Math.random() * this.viewW, 120 + Math.random() * 200, RAINBOW[Math.floor(Math.random() * 6)], 8, 1.4);
     this.sparks.forEach((p) => { p.age += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 200 * dt; });
     this.sparks = this.sparks.filter((p) => p.age < p.life);
 
@@ -432,14 +518,29 @@ export class World {
       c.fillStyle = '#fff';
       for (let i = 0; i < 40; i++) c.fillRect((i * 173) % this.viewW, (i * 97) % 380, 4, 4);
     }
-    c.fillStyle = b.sun;
-    c.beginPath();
-    c.arc(this.viewW - 170, 120, 62, 0, Math.PI * 2);
-    c.fill();
-    c.fillStyle = b.stars ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.9)';
+    if (this.weather !== 'rain' && this.weather !== 'storm') {
+      c.fillStyle = b.sun;
+      c.beginPath();
+      c.arc(this.viewW - 170, 120, 62, 0, Math.PI * 2);
+      c.fill();
+    }
+    // Duha po dešti: velký oblouk na obloze, pomalu zmizí.
+    if (this.rainbowLeft > 0) {
+      c.globalAlpha = Math.min(1, this.rainbowLeft / 3) * 0.55;
+      RAINBOW.forEach((colour, i) => {
+        c.strokeStyle = colour;
+        c.lineWidth = 16;
+        c.beginPath();
+        c.arc(this.viewW / 2, GROUND + 60, 520 - i * 16, Math.PI, 0);
+        c.stroke();
+      });
+      c.globalAlpha = 1;
+    }
+    const grey = this.weather === 'rain' || this.weather === 'storm';
+    c.fillStyle = b.stars ? 'rgba(255,255,255,.18)' : grey ? 'rgba(200,206,214,.95)' : 'rgba(255,255,255,.9)';
     for (let i = 0; i < 4; i++) {
       const span = this.viewW + 400;
-      const x = ((i * 430 - this.dist * 0.08) % span + span) % span - 200;
+      const x = ((i * 430 - this.dist * 0.08 - (this.wind ?? 0)) % span + span) % span - 200;
       const y = 90 + (i % 3) * 70;
       [[0, 0, 42], [50, -14, 52], [104, 0, 40]].forEach(([dx, dy, r]) => {
         c.beginPath();
@@ -463,6 +564,14 @@ export class World {
       const size = b.decorH * (0.8 + ((n * 7) % 5 + 5) % 5 * 0.06);
       c.drawImage(this.images[b.decor], n * b.decorStep - near, GROUND + 8 - size, size, size);
     }
+    // Zvířátko v pozadí: menší a světlejší než věci v popředí, jen pomalu kývá hlavou.
+    const a = this.bgAnimal;
+    if (a && b === BIOMES[this.biome] && (this.state === 'walk' || this.state === 'bump')) {
+      const nod = Math.sin(this.elapsed * 1.5) * 4;
+      c.globalAlpha = 0.85;
+      c.drawImage(this.images[a.art], a.x - near, GROUND - BG_SIZE + 6 + nod, BG_SIZE, BG_SIZE);
+      c.globalAlpha = 1;
+    }
     c.fillStyle = b.ground;
     c.fillRect(0, GROUND, this.viewW, VIEW_H - GROUND);
     for (let i = -1; i < this.viewW / 170 + 2; i++) {
@@ -473,7 +582,7 @@ export class World {
       c.arc(x, GROUND + 50 + ((n * 37) % 60 + 60) % 60, 8, 0, Math.PI * 2);
       c.fill();
     }
-    if (b.snow) {
+    if (this.weather === 'snow') {
       c.fillStyle = '#fff';
       for (let i = 0; i < 36; i++) {
         const x = ((i * 137 + Math.sin(this.elapsed + i) * 30) % this.viewW + this.viewW) % this.viewW;
@@ -488,6 +597,64 @@ export class World {
   drawWorld(c, b) {
     this.drawSky(c, b);
     this.drawGround(c, b);
+  }
+
+  // Přední vrstva počasí a oslavy.
+  drawWeather(c) {
+    const w = this.weather;
+    if (w === 'storm') {
+      c.fillStyle = 'rgba(40,52,84,.22)';
+      c.fillRect(0, 0, this.viewW, VIEW_H);
+      // Záblesk je pomalý a slabý: nejvýš 22 % bílé.
+      if (this.flash > 0) {
+        c.fillStyle = `rgba(255,255,255,${(Math.sin((this.flash / FLASH_TIME) * Math.PI) * 0.22).toFixed(3)})`;
+        c.fillRect(0, 0, this.viewW, VIEW_H);
+      }
+    }
+    if (w === 'rain' || w === 'storm') {
+      c.strokeStyle = 'rgba(120,160,210,.6)';
+      c.lineWidth = 3;
+      c.beginPath();
+      for (let i = 0; i < 70; i++) {
+        const x = ((i * 97 - this.elapsed * 60) % this.viewW + this.viewW) % this.viewW;
+        const y = (i * 53 + this.elapsed * 520) % VIEW_H;
+        c.moveTo(x, y);
+        c.lineTo(x - 6, y + 22);
+      }
+      c.stroke();
+      c.fillStyle = 'rgba(120,160,210,.35)';
+      for (let i = -1; i < this.viewW / 600 + 2; i++) {
+        const n = Math.floor(this.dist / 600) + i;
+        c.beginPath();
+        c.ellipse(n * 600 + 300 - this.dist, GROUND + 30, 70, 10, 0, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
+    if (w === 'wind') {
+      ['#8FD16F', '#FFB52E', '#E2701A'].forEach((colour, k) => {
+        c.fillStyle = colour;
+        for (let i = 0; i < 6; i++) {
+          const x = (((i * 311 + k * 97) - this.elapsed * 260) % (this.viewW + 200) + this.viewW + 200) % (this.viewW + 200) - 100;
+          const y = 140 + ((i * 89 + k * 61) % 380) + Math.sin(this.elapsed * 2 + i) * 30;
+          c.beginPath();
+          c.ellipse(x, y, 12, 6, this.elapsed * 3 + i, 0, Math.PI * 2);
+          c.fill();
+        }
+      });
+    }
+    this.balloons?.forEach((b) => {
+      if (b.y < -120) return;
+      c.strokeStyle = '#999';
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(b.x, b.y + 46);
+      c.lineTo(b.x + Math.sin(b.y / 40) * 8, b.y + 110);
+      c.stroke();
+      c.fillStyle = b.c;
+      c.beginPath();
+      c.ellipse(b.x, b.y, 34, 44, 0, 0, Math.PI * 2);
+      c.fill();
+    });
   }
 
   drawThings(c) {
@@ -601,6 +768,11 @@ export class World {
         c.stroke();
       }
     }
+    // Deštník drží v ruce vedle hlavy, aby rukojeť nešla přes obličej.
+    if (this.has('umbrella') && (this.weather === 'rain' || this.weather === 'storm')) {
+      const u = w * 1.15;
+      c.drawImage(this.images.umbrella, w * 0.46 - u / 2, -h * 0.98 - u * 0.5, u, u);
+    }
     if (this.has('basket')) c.drawImage(this.images.basket, -w * 0.62, -h * 0.32, 70 * this.size, 70 * this.size);
     c.restore();
 
@@ -662,6 +834,7 @@ export class World {
     this.drawThings(c);
     this.drawHero(c);
     this.drawSparks(c);
+    this.drawWeather(c);
     this.walletPulse = Math.max(0, (this.walletPulse ?? 0) - dt * 2);
     this.drawWallet(c);
     if (this.running) requestAnimationFrame((n) => this.frame(n));

@@ -136,6 +136,9 @@ function panel(root, state, api) {
         <label><input type="checkbox" class="lock-night" ${state.lockNight ? 'checked' : ''}> Po Dobrou noc zamknout</label>
         <label><input type="checkbox" class="sounds" ${state.sounds ? 'checked' : ''}> Zvuky hry</label>
         <label><input type="checkbox" class="shops" ${state.shops ? 'checked' : ''}> Krámky (hvězdiček: ${state.stars})</label>
+        <label><input type="checkbox" class="bg-animals" ${state.bgAnimals ? 'checked' : ''}> Zvířátka v pozadí</label>
+        <label><input type="checkbox" class="storm" ${state.stormOff ? '' : 'checked'}> Bouřka</label>
+        <label><input type="checkbox" class="birthday" ${state.birthday === new Date().toLocaleDateString('sv') ? 'checked' : ''}> Dnes má narozeniny</label>
         <button class="reset">Smazat postup</button>
       </section>
       <section><h3>Nahrát hlas</h3>
@@ -184,6 +187,9 @@ function panel(root, state, api) {
   $('.lock-night').onchange = (e) => { state.lockNight = e.target.checked; api.save(); };
   $('.sounds').onchange = (e) => { state.sounds = e.target.checked; api.save(); };
   $('.shops').onchange = (e) => { state.shops = e.target.checked; api.save(); };
+  $('.bg-animals').onchange = (e) => { state.bgAnimals = e.target.checked; api.save(); };
+  $('.storm').onchange = (e) => { state.stormOff = !e.target.checked; api.save(); };
+  $('.birthday').onchange = (e) => { state.birthday = e.target.checked ? new Date().toLocaleDateString('sv') : ''; api.save(); };
   $('.guide').onchange = (e) => { state.guide = e.target.value; api.save(); };
   $('.minutes').onchange = (e) => { state.minutes = Number(e.target.value); api.save(); };
   $('.lang').onchange = (e) => { state.lang = e.target.value; api.save(); };

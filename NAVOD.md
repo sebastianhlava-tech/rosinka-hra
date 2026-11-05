@@ -56,6 +56,21 @@ Každá věc něco dělá:
 - **Pro kamaráda** (mašle, korunka, klobouček): kamarád ji má hned na sobě. V krámku je jen tehdy, když dítě má kamaráda.
 - **Do pokojíčku** (šiška, sněhulák, autíčko, medvídek, hvězdička, měsíček): je na poličce u postýlky při Dobrou noc.
 
+## Výlet, místa a počasí
+
+Po ťuknutí na Hrát přijde mapa se 3 místy. Hlas se zeptá „Kam pojedeme?“. Dítě ťukne na jedno místo a tam výlet začne.
+Míst je 10: louka, farma, les, ZOO, pláž, hrad, sníh, hřiště, město a večer. Každé má svůj krámek.
+
+Počasí: slunce, déšť (s kalužemi), vítr (letí listy), bouřka (tmavší obloha, pomalý slabý záblesk) a sníh. Po dešti je duha. Hlas řekne „Prší.“ nebo „Fouká vítr.“
+Deštník (vylepšení): začne pršet a kapky se mění na hvězdičky.
+
+Zvířátka v pozadí: nejvýš jedno najednou, další až po 15–20 sekundách. Jsou menší a průhlednější. Ťuknutí řekne jméno a zvuk („Kravička. Bú.“), ale nedá odměnu.
+
+Oslava: po postupu ve stopě letí balónky a konfety a hlas řekne „Hurá! Umíš něco nového!“.
+Narozeniny: v Pro rodiče zaškrtni „Dnes má narozeniny“. Na úvodní obrazovce je dort a hra začne oslavou.
+
+V Pro rodiče jde vypnout zvířátka v pozadí a bouřku.
+
 ## Kamarádi
 
 Za postup ve stopě učení dostane dítě trvalého kamaráda (nejvýš 3). Kamarádi běží s Rosinkou v každé hře a chytají hvězdy, které Rosinka mine.

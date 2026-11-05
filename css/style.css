@@ -16,6 +16,15 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 /* Start */
 #start { display: flex; align-items: flex-end; justify-content: center; gap: 1vw; padding-bottom: 12vh; background: linear-gradient(#BDE6F7, #EAF8FB 70%, #8FD16F 70%); }
 #start-hero { height: min(42vh, 27vw); }
+#start-cake { position: absolute; left: 50%; top: 6vh; width: 20vh; transform: translateX(-50%); animation: breathe 2.6s ease-in-out infinite; }
+#map { background: #F4E7C2; display: flex; align-items: center; justify-content: center; }
+#map-places { display: flex; gap: 4vw; }
+#map-places button { position: relative; width: min(50vh, 28vw); height: min(50vh, 28vw); border-radius: 36px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,.18); border: 8px solid #fff; animation: breathe 3s ease-in-out infinite; }
+#map-places button:nth-child(2) { animation-delay: .5s; }
+#map-places button:nth-child(3) { animation-delay: 1s; }
+.map-decor { position: absolute; left: 6%; bottom: 24%; width: 60%; }
+.map-animal { position: absolute; right: 6%; bottom: 14%; width: 40%; }
+.map-decor svg, .map-animal svg { width: 100%; height: auto; }
 #start-pets { display: flex; flex-direction: column-reverse; gap: 1vh; align-self: flex-end; }
 #start-pets button img { width: min(14vh, 9vw); height: min(14vh, 9vw); }
 .grownup { height: min(58vh, 36vw); }

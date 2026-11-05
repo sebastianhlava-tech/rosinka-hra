@@ -76,3 +76,17 @@ test('každý kamarád a doplněk jde nakreslit', async () => {
     }
   });
 });
+
+test('každé místo má hlášení, krámek, obrázky a hlasy pro zvířátka v pozadí', async () => {
+  const { BIOMES, pickWeather } = await import('../js/biomes.js');
+  const keys = new Set(SENTENCES.map((s) => s.key));
+  BIOMES.forEach((b) => {
+    assert.ok(keys.has(`place-${b.id}`), b.id);
+    assert.ok(SHOPS[b.id], b.id);
+    [b.decor, ...b.obstacles.map((o) => o.art), ...(b.animals ?? [])].forEach((art) => assert.ok(!artSvg(art).includes('undefined'), art));
+    (b.animals ?? []).forEach((a) => assert.ok(keys.has(`bg-${a}`) && keys.has(`en:bg-${a}`), a));
+    b.weather.filter((w) => w !== 'sun' && w !== 'snow').forEach((w) => assert.ok(keys.has(`weather-${w}`), w));
+  });
+  const meadow = BIOMES[0];
+  for (let i = 0; i < 50; i++) assert.notEqual(pickWeather(meadow, true), 'storm');
+});

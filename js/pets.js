@@ -63,7 +63,7 @@ const HEAD = [
 const BACK = [
   { m: '' },
   { m: '<path d="M54 138 Q6 96 18 70 Q40 96 60 112Z M146 138 Q194 96 182 70 Q160 96 140 112Z" fill="#F2F7FB" stroke="#C9DCEB" stroke-width="3"/>' },
-  { m: '<path d="M64 112 Q40 170 46 196 H154 Q160 170 136 112Z" fill="#E23B3B"/>' },
+  { m: '<path d="M64 112 Q40 170 46 196 H154 Q160 170 136 112Z" fill="#E23B3B"/>', shop: 'petcape' },
 ];
 
 export const PET_CATEGORIES = [

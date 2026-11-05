@@ -49,7 +49,32 @@ export const SHOPS = {
   ] },
 };
 
-export const SHOP_ITEMS = Object.values(SHOPS).flatMap((s) => s.items);
+// Nová místa (fáze 5). Některé věci jsou ve dvou krámcích, je to stejná věc.
+const find = (id) => Object.values(SHOPS).flatMap((s) => s.items).find((i) => i.id === id);
+Object.assign(SHOPS, {
+  farm: { seller: 'cow', cs: `Tady je farma. ${BUY}`, en: `Here is the farm shop. ${BUY_EN}`, items: [
+    item('milk', 'milk', 1, 'eat', 'Mléko stojí jednu hvězdičku.', 'The milk costs one star.'),
+    item('carrot', 'carrot', 2, 'eat', 'Mrkev stojí dvě hvězdičky.', 'The carrot costs two stars.'),
+    item('toytractor', 'tractor', 3, 'room', 'Traktůrek stojí tři hvězdičky.', 'The toy tractor costs three stars.'),
+  ] },
+  zoo: { seller: 'elephant', cs: `Tady je stánek v ZOO. ${BUY}`, en: `Here is the zoo stand. ${BUY_EN}`, items: [
+    find('balloon'),
+    find('icecream-2'),
+    item('plushlion', 'lion', 3, 'room', 'Plyšový lev stojí tři hvězdičky.', 'The toy lion costs three stars.'),
+  ] },
+  castle: { seller: 'horse', cs: `Tady je hradní stánek. ${BUY}`, en: `Here is the castle stand. ${BUY_EN}`, items: [
+    item('flag', 'flag', 1, 'hand', 'Vlaječka stojí jednu hvězdičku.', 'The flag costs one star.'),
+    item('petcape', 'petcape', 2, 'pet', 'Plášť pro kamaráda stojí dvě hvězdičky.', 'A cape for your friend costs two stars.', { wear: 'Kamarád má plášť!', wearEn: 'Your friend has a cape!' }),
+    item('toyshield', 'shield', 3, 'room', 'Štít stojí tři hvězdičky.', 'The shield costs three stars.'),
+  ] },
+  playground: { seller: 'pig', cs: `Tady je stánek u hřiště. ${BUY}`, en: `Here is the playground stand. ${BUY_EN}`, items: [
+    find('icecream-1'),
+    item('toyball', 'ball', 2, 'room', 'Míč stojí dvě hvězdičky.', 'The ball costs two stars.'),
+    item('toybucket', 'bucket', 3, 'room', 'Kyblíček stojí tři hvězdičky.', 'The bucket costs three stars.'),
+  ] },
+});
+
+export const SHOP_ITEMS = [...new Set(Object.values(SHOPS).flatMap((s) => s.items))];
 export const ROOM_ITEMS = SHOP_ITEMS.filter((i) => i.kind === 'room');
 const byId = new Map(SHOP_ITEMS.map((i) => [i.id, i]));
 export const shopItem = (id) => byId.get(id);

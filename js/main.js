@@ -2,7 +2,7 @@
 import { artSvg, loadImage, shapeTint, svgToDataUrl } from './art.js';
 import { SPECIES_IDS, newPet, petSvg } from './pets.js';
 import { openPetCreator } from './petcreator.js';
-import { DIFFICULTIES, MAX_FRIENDS, nextUpgrade } from './biomes.js';
+import { BIOMES, DIFFICULTIES, MAX_FRIENDS, nextUpgrade, pickWeather } from './biomes.js';
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
@@ -45,7 +45,14 @@ const world = new World($('canvas'), {
   },
   onBump: () => { chime(220); if (!kidSound('bump')) say('bum'); },
   onTimeUp: goToBed,
-  onBiome: (id) => say(`place-${id}`),
+  onBiome: async (id, weather) => {
+    await say(`place-${id}`);
+    if (weather !== 'sun' && weather !== 'snow' && world.state === 'walk') say(`weather-${weather}`);
+  },
+  pickWeather: (biome) => pickWeather(biome, state.stormOff),
+  onThunder: () => chime(98),
+  bgAnimals: () => state.bgAnimals,
+  onAnimalTap: (art) => { if (!isSpeaking()) say(`bg-${art}`); },
   onStar: () => {
     chime(1040);
     if (addRunStar(state)) earned();
@@ -90,7 +97,7 @@ function earned() {
 }
 
 function show(id) {
-  ['start', 'creator', 'game', 'night'].forEach((s) => { $(s).hidden = s !== id; });
+  ['start', 'map', 'creator', 'game', 'night'].forEach((s) => { $(s).hidden = s !== id; });
   $('parent-btn').hidden = id === 'creator';
   $('parent-btn').classList.toggle('quiet', id === 'game');
   if (id === 'game') keepAwake();
@@ -134,6 +141,7 @@ function showStart() {
   $('start-hero').src = portrait('child');
   setFamily('start');
   $('start-pets').innerHTML = state.pets.map((p, i) => `<button data-pet="${i}"><img src="${svgToDataUrl(petSvg(p))}" alt=""></button>`).join('');
+  $('start-cake').hidden = !isBirthday();
   show('start');
 }
 
@@ -190,14 +198,40 @@ function showCreator(kind, after) {
   });
 }
 
+const today = () => new Date().toLocaleDateString('sv');
+const isBirthday = () => state.birthday === today();
+
+// Výlet: na začátku si dítě vybere jedno ze 3 míst. Odtud jde výlet dál a končí doma v postýlce.
+function showMap() {
+  const picks = BIOMES.map((_, i) => i).filter((i) => BIOMES[i].id !== 'dusk').sort(() => Math.random() - 0.5).slice(0, 3);
+  $('map-places').innerHTML = picks.map((i) => {
+    const b = BIOMES[i];
+    const animal = b.animals?.[0];
+    return `<button data-biome="${i}" style="background: linear-gradient(${b.sky[0]}, ${b.sky[1]} 70%, ${b.ground} 70%)">
+      <span class="map-decor">${artSvg(b.decor)}</span>${animal ? `<span class="map-animal">${artSvg(animal)}</span>` : ''}</button>`;
+  }).join('');
+  show('map');
+  say('map');
+}
+
 async function play() {
   unlockAudio();
   setSpeaker(state.guide === 'dad' ? 'dad' : 'mom');
   await world.load(markup('child'));
+  showMap();
+}
+
+async function startTrip(biome) {
+  stopVoice();
   show('game');
-  world.start(state.minutes, playLevel(state.progress), DIFFICULTIES[state.difficulty]);
+  world.start(state.minutes, playLevel(state.progress), DIFFICULTIES[state.difficulty], biome);
   world.wallet = state.stars;
   await showPets();
+  if (isBirthday()) {
+    world.celebrate();
+    await say('birthday');
+  }
+  say(`place-${BIOMES[biome].id}`);
 }
 
 function renderChoices(q, onPick) {
@@ -237,6 +271,10 @@ function askQuestion() {
     if (state.lang === 'both' && q.answerId) await say(`word-${q.answerId}`, undefined, 'en');
     $('question').hidden = true;
     const animal = q.choices.find((c) => c.cat === 'animal')?.art;
+    if (levelUp) {
+      world.celebrate();
+      await say('level-party');
+    }
     if (levelUp && await giftPet(animal)) {
       world.burst();
       await say('pet-new');
@@ -331,6 +369,11 @@ $('start-pets').addEventListener('click', (e) => {
   const b = e.target.closest('[data-pet]');
   if (b) showPetCreator(Number(b.dataset.pet), showStart);
 });
+$('map-places').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-biome]');
+  if (b) startTrip(Number(b.dataset.biome));
+});
+$('start-cake').src = svgToDataUrl(artSvg('cake'));
 $('album-grid').addEventListener('click', bounce);
 $('album-btn').addEventListener('click', openAlbum);
 $('album-close').addEventListener('click', () => { $('album').hidden = true; });
