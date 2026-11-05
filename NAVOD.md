@@ -63,7 +63,7 @@ Tyto nahrávky jsou jen v iPadu. Nejdou do stažených nahrávek, do ElevenLabs 
 
 ElevenLabs udělá z vašich nahrávek klon hlasu. Skript pak namluví všechny věty česky i anglicky.
 Pořadí ve hře: vaše nahrávka, potom hlas z ElevenLabs, nakonec hlas tabletu.
-Hlasy jsou jen v iPadu a v Macu ve složce `voices/`. Na GitHub nikdy nejdou.
+Čisté hlasy jsou jen v iPadu a v Macu ve složce `voices/`. Na GitHub jdou jen zamčené heslem.
 
 1. Na iPadu: Pro rodiče, Stáhnout nahrávky maminky (a tatínka). Pošli ZIP přes AirDrop do Macu. ZIP nech ve Stažených a nerozbaluj ho.
 2. Na elevenlabs.io: založ účet a zaplať tarif Starter (klonování hlasu je jen v placeném tarifu).
@@ -84,11 +84,21 @@ cd "/Users/sebastianhlava/Rosinka Hra" && node tools/make-voices.mjs --go
 Skript sám udělá klon hlasu z vašich nahrávek a potom namluví chybějící věty.
 Bez `--go` skript jen ukáže, co udělá a kolik znaků to stojí.
 
-5. Pošli soubor `voices/rosinka-hlasy.zip` přes AirDrop do iPadu a ulož ho do Souborů.
-6. Na iPadu: Pro rodiče, Načíst hlasy, vyber ZIP.
+5. Skript hlasy zamkne heslem a uloží je do repa jako `voices.enc`. Nahraj změny na GitHub.
+6. Jen poprvé: ukaž si heslo a zadej ho do iPadu (Pro rodiče, Heslo k hlasům, Stáhnout hlasy):
+
+```bash
+cd "/Users/sebastianhlava/Rosinka Hra" && node tools/make-voices.mjs --password
+```
+
+Potom si iPad nové hlasy stáhne sám při každém spuštění hry. AirDrop už není potřeba.
+
+Bezpečnost: `voices.enc` je na webu veřejně, ale zamčený heslem (AES-256). Bez hesla je to jen šum.
+Heslo je jen v Klíčence na Macu a v iPadu. Nikomu ho neposílej. Čisté hlasy (`voices/`) na GitHub nikdy nejdou.
+Bez internetu jde pořád postaru: v Pro rodiče otevři „Bez internetu nebo bez hesla“ a načti `voices/rosinka-hlasy.zip`.
 
 Smazat hlasy z ElevenLabs jde tlačítkem v Pro rodiče. Vaše vlastní nahrávky zůstanou.
-Když přibudou nové věty, spusť skript znovu. Udělá jen chybějící věty.
+Když přibudou nové věty, spusť skript znovu s `--go`. Udělá jen chybějící věty.
 
 ## Aby dítě neodešlo ze hry
 

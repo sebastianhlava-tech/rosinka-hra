@@ -308,7 +308,7 @@ Každá fáze je samostatně hratelná a jde na web zvlášť. Po každé fázi 
 
 ## Na rozhodnutí Sebastiana
 
-1. Kam s hlasy z ElevenLabs: **rozhodnuto 5. 11.: jen do iPadu** přes Soubory. Nikdy na GitHub.
+1. Kam s hlasy z ElevenLabs: **rozhodnuto 5. 11.: na GitHub jen zašifrované heslem** (voices.enc, AES-256). Čisté hlasy nikdy. iPad si je stáhne sám.
 2. Souhlas maminky s klonem hlasu.
 3. Pořadí fází: začít fází 1, nebo jinou.
 

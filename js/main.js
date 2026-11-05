@@ -8,7 +8,7 @@ import { ALL_ITEMS, itemStatus, pickQuestion, playLevel, recordAnswer } from './
 import { ANSWER_STARS, ROOM_ITEMS, addRunStar, addStars } from './shop.js';
 import { openShop } from './shopview.js';
 import { characterOf, loadState, saveState } from './storage.js';
-import { chime, initVoice, isSpeaking, kidSound, say, setChimes, setLang, setSpeaker, stopVoice, unlockAudio } from './voice.js';
+import { chime, initVoice, isSpeaking, kidSound, say, setChimes, setLang, setSpeaker, stopVoice, syncVoices, unlockAudio } from './voice.js';
 import { World } from './world.js';
 
 const NOTES = [523, 587, 659, 784, 880];
@@ -299,7 +299,16 @@ document.addEventListener('focusout', resetZoom);
 addEventListener('orientationchange', resetZoom);
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-initVoice();
+// Když je v iPadu heslo k hlasům, hra si potichu stáhne novější hlasy z webu.
+initVoice().then(async () => {
+  if (!state.voicePassword) return;
+  try {
+    const got = await syncVoices(state.voicePassword, state.voicesVersion);
+    if (got) { state.voicesVersion = got.version; save(); }
+  } catch {
+    // Bez internetu nebo se špatným heslem zůstanou hlasy, které už v iPadu jsou.
+  }
+});
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 if (state.locked) goToBed();

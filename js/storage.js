@@ -17,6 +17,8 @@ const defaults = () => ({
   stars: 0,
   starBits: 0,
   room: [],
+  voicePassword: '',
+  voicesVersion: '',
   progress: newProgress(),
 });
 

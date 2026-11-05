@@ -4,6 +4,7 @@
 // Hlasy z ElevenLabs mají vlastní klíč „ai:…“, takže nikdy nepřepíšou vlastní nahrávku.
 import { SENTENCES, parseVoiceFile, sentenceKey, voiceFileName } from './questions.js';
 import { deleteClip, loadClips, saveClip } from './storage.js';
+import { unlock } from './vault.js';
 import { makeZip, readZip } from './zip.js';
 
 const textOf = new Map(SENTENCES.map((s) => [s.key, s.text]));
@@ -187,6 +188,21 @@ export async function exportRecordings(kind) {
   return entries.length ? new Blob([makeZip(entries)], { type: 'application/zip' }) : null;
 }
 
+async function saveAiEntries(entries) {
+  let saved = 0;
+  for (const { name, data } of entries) {
+    const found = parseVoiceFile(name);
+    if (!found) continue;
+    const key = aiKey(found.kind, found.key);
+    const blob = new Blob([data], { type: 'audio/mpeg' });
+    await saveClip(key, blob);
+    if (urls.has(key)) URL.revokeObjectURL(urls.get(key));
+    urls.set(key, URL.createObjectURL(blob));
+    saved++;
+  }
+  return saved;
+}
+
 // Načte hlasy z ElevenLabs: ZIP nebo jednotlivé soubory. Vrátí počet načtených vět.
 export async function importVoices(files) {
   let saved = 0;
@@ -194,18 +210,20 @@ export async function importVoices(files) {
     const entries = file.name.toLowerCase().endsWith('.zip')
       ? await readZip(await file.arrayBuffer())
       : [{ name: file.name, data: new Uint8Array(await file.arrayBuffer()) }];
-    for (const { name, data } of entries) {
-      const found = parseVoiceFile(name);
-      if (!found) continue;
-      const key = aiKey(found.kind, found.key);
-      const blob = new Blob([data], { type: 'audio/mpeg' });
-      await saveClip(key, blob);
-      if (urls.has(key)) URL.revokeObjectURL(urls.get(key));
-      urls.set(key, URL.createObjectURL(blob));
-      saved++;
-    }
+    saved += await saveAiEntries(entries);
   }
   return saved;
+}
+
+// Stáhne zašifrované hlasy z webu, když jsou novější. Vrátí null, když není co dělat.
+// Se špatným heslem nebo bez internetu vyhodí chybu.
+export async function syncVoices(password, have) {
+  const info = await (await fetch('voices.json', { cache: 'no-store' })).json();
+  if (info.version === have) return null;
+  const res = await fetch('voices.enc', { cache: 'no-store' });
+  if (!res.ok) throw new Error(`voices.enc ${res.status}`);
+  const zip = await unlock(await res.arrayBuffer(), password);
+  return { version: info.version, count: await saveAiEntries(await readZip(zip)) };
 }
 
 // Smaže jen hlasy z ElevenLabs. Vlastní nahrávky zůstanou.

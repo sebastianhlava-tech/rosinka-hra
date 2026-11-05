@@ -2,7 +2,7 @@
 import { SENTENCES, TRACKS, isOff, itemStatus, newProgress, setStage, stageOf } from './questions.js';
 import { DIFFICULTIES } from './biomes.js';
 import { openRecorder } from './recorder.js';
-import { KID_SOUNDS, aiCount, exportRecordings, hasClip, importVoices, kidSound, removeAiVoices, removeClip, say, startRecording, stopVoice } from './voice.js';
+import { KID_SOUNDS, aiCount, exportRecordings, hasClip, importVoices, kidSound, removeAiVoices, removeClip, say, startRecording, stopVoice, syncVoices } from './voice.js';
 
 const HOLD_MS = 3000;
 const LANGS = [['cs', 'Čeština'], ['both', 'Čeština + anglická slovíčka'], ['en', 'English']];
@@ -152,6 +152,12 @@ function panel(root, state, api) {
       <section><h3>Hlas z ElevenLabs</h3>
         <p>Hra mluví tímto hlasem: nejdřív vaše nahrávka, potom hlas z ElevenLabs, nakonec hlas tabletu.</p>
         <p>Načtené věty: maminka ${aiCount('mom')} z ${SENTENCES.length}, tatínek ${aiCount('dad')} z ${SENTENCES.length}.</p>
+        <p>Hlasy jsou na webu zamčené heslem. Zadej heslo jednou. Hra si potom nové hlasy stáhne sama při spuštění.</p>
+        <div class="actions">
+          <label>Heslo k hlasům <input type="text" class="voice-pw" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" value="${state.voicePassword ?? ''}"></label>
+          <button class="primary sync">Stáhnout hlasy</button>
+        </div>
+        <details><summary>Bez internetu nebo bez hesla</summary>
         <div class="actions">
           <button class="export-mom">Stáhnout nahrávky maminky</button>
           <button class="export-dad">Stáhnout nahrávky tatínka</button>
@@ -159,6 +165,7 @@ function panel(root, state, api) {
           <button class="ai-del">Smazat hlasy z ElevenLabs</button>
           <input type="file" class="import-file" accept=".zip,.mp3,audio/*" multiple hidden>
         </div>
+        </details>
         <p class="ai-msg"></p>
       </section>
       <section><h3>Co už umí</h3><p>Stopa se posune sama. Tady ji můžeš posunout, nebo vypnout.</p><div class="learning">${learningHtml(state.progress)}</div></section>
@@ -206,6 +213,21 @@ function panel(root, state, api) {
       setTimeout(() => URL.revokeObjectURL(a.href), 60000);
     };
   });
+  $('.sync').onclick = async () => {
+    const pw = $('.voice-pw').value.trim();
+    if (!pw) return message('Nejdřív zadej heslo.');
+    message('Stahuji hlasy…');
+    try {
+      const got = await syncVoices(pw, '');
+      state.voicePassword = pw;
+      state.voicesVersion = got.version;
+      api.save();
+      panel(root, state, api);
+      root.querySelector('.ai-msg').textContent = `Hotovo. Počet načtených vět: ${got.count}.`;
+    } catch (e) {
+      message(e.name === 'OperationError' ? 'Heslo nesedí. Zkontroluj ho.' : 'Hlasy nejdou stáhnout. Zkontroluj internet.');
+    }
+  };
   $('.import').onclick = () => $('.import-file').click();
   $('.import-file').onchange = async (e) => {
     message('Načítám…');

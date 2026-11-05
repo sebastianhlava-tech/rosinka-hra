@@ -13,8 +13,12 @@
 //   ELEVEN_VOICE_DAD     id hotového klonu hlasu tatínka
 //   ELEVEN_MODEL         model, výchozí eleven_multilingual_v2
 //
-// Výsledek je ve složce voices/. Ta se nikdy nenahraje na GitHub.
-// Do iPadu jde jen soubor voices/rosinka-hlasy.zip (AirDrop nebo iCloud, potom Načíst hlasy).
+//   node tools/make-voices.mjs --password              ukáže heslo k hlasům pro iPad
+//   node tools/make-voices.mjs --lock                  jen znovu zašifruje hotový ZIP
+//
+// Čisté hlasy jsou ve složce voices/. Ta se nikdy nenahraje na GitHub.
+// Do repa jde jen voices.enc (ZIP zamčený heslem) a voices.json (verze a počet vět).
+// iPad si voices.enc stáhne sám a odemkne ho heslem, které rodič zadá jednou.
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -22,10 +26,13 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { SENTENCES, parseVoiceFile, voiceFileName } from '../js/questions.js';
+import { lock, newPassword } from '../js/vault.js';
 import { makeZip, readZip } from '../js/zip.js';
 
 const OUT = fileURLToPath(new URL('../voices/', import.meta.url));
 const ZIP = join(OUT, 'rosinka-hlasy.zip');
+const ENC = fileURLToPath(new URL('../voices.enc', import.meta.url));
+const INFO = fileURLToPath(new URL('../voices.json', import.meta.url));
 const args = process.argv.slice(2);
 const go = args.includes('--go');
 const model = process.env.ELEVEN_MODEL || 'eleven_multilingual_v2';
@@ -61,14 +68,52 @@ function askHidden(question) {
 
 const env = process.env;
 
-// API klíč je jen v Klíčence na Macu (Keychain), nikdy v souborech hry.
+// API klíč a heslo k hlasům jsou jen v Klíčence na Macu (Keychain), nikdy v souborech hry.
 const KEYCHAIN = ['-s', 'rosinka-elevenlabs', '-a', 'elevenlabs'];
-function keychainKey() {
+const PASSWORD = ['-s', 'rosinka-voices', '-a', 'rosinka'];
+function keychainRead(entry) {
   try {
-    return execFileSync('security', ['find-generic-password', ...KEYCHAIN, '-w'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    return execFileSync('security', ['find-generic-password', ...entry, '-w'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
   } catch {
     return '';
   }
+}
+const keychainKey = () => keychainRead(KEYCHAIN);
+
+// Heslo k zašifrovaným hlasům. Poprvé ho skript vymyslí a uloží do Klíčenky.
+function voicesPassword() {
+  let pw = keychainRead(PASSWORD);
+  if (!pw) {
+    pw = newPassword();
+    execFileSync('security', ['add-generic-password', '-U', ...PASSWORD, '-w', pw]);
+    console.log('Vytvořil jsem heslo k hlasům. Ukáže ho: node tools/make-voices.mjs --password');
+  }
+  return pw;
+}
+
+// Zamkne ZIP heslem a uloží ho do repa jako voices.enc. Bez hesla ho nikdo neotevře.
+async function publish(zip, count) {
+  writeFileSync(ENC, await lock(zip, voicesPassword()));
+  writeFileSync(INFO, `${JSON.stringify({ version: new Date().toISOString(), count })}\n`);
+  console.log('Zašifrované hlasy jsou v voices.enc. Po nahrání na GitHub si je iPad stáhne sám.');
+}
+
+// --password: ukáže heslo k hlasům, aby šlo zadat do iPadu.
+if (args.includes('--password')) {
+  console.log(`Heslo k hlasům: ${voicesPassword()}`);
+  console.log('Zadej ho v iPadu: Pro rodiče, Hlas z ElevenLabs, Heslo k hlasům.');
+  process.exit(0);
+}
+
+// --lock: jen znovu zašifruje hotový ZIP. Nic nestojí.
+if (args.includes('--lock')) {
+  if (!existsSync(ZIP)) {
+    console.log('Chybí voices/rosinka-hlasy.zip. Nejdřív spusť skript s --go.');
+    process.exit(1);
+  }
+  const zip = new Uint8Array(readFileSync(ZIP));
+  await publish(zip, (await readZip(zip.buffer)).length);
+  process.exit(0);
 }
 async function askKey() {
   const key = await askHidden('Vlož API klíč z ElevenLabs a stiskni Enter (při psaní není vidět): ');
@@ -211,5 +256,7 @@ for (const { kind, s, file } of todo) {
 
 const entries = readdirSync(OUT).filter((f) => f.endsWith('.mp3') && parseVoiceFile(f))
   .map((name) => ({ name, data: new Uint8Array(readFileSync(join(OUT, name))) }));
-writeFileSync(ZIP, makeZip(entries));
-console.log(`Hotovo. ZIP pro iPad: ${ZIP} (${entries.length} vět).`);
+const zip = makeZip(entries);
+writeFileSync(ZIP, zip);
+console.log(`Hotovo. ZIP: ${ZIP} (${entries.length} vět).`);
+await publish(zip, entries.length);

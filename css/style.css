@@ -159,3 +159,4 @@ html.zoomed, html.zoomed body, html.zoomed * { touch-action: pinch-zoom !importa
 @media (prefers-reduced-motion: reduce) {
   #play, .pulse { animation-duration: 4s; }
 }
+.voice-pw { font: inherit; padding: 8px 10px; border: 2px solid #ccd; border-radius: 10px; width: 15em; margin-left: 6px; }
