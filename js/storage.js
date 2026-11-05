@@ -22,6 +22,8 @@ const defaults = () => ({
   room: [],
   pets: [],
   petItems: [],
+  wardrobe: [],
+  unlockAll: false,
   voicePassword: '',
   voicesVersion: '',
   progress: newProgress(),

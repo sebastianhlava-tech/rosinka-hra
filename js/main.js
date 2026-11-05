@@ -63,6 +63,7 @@ const world = new World($('canvas'), {
     world.wallet = state.stars;
     if (item?.kind === 'hand' || item?.kind === 'eat') await world.setHand(item);
     if (item?.kind === 'pet') await showPets();
+    if (item?.kind === 'wear') await world.load(markup('child'));
     if (item) world.burst();
     world.resumeAfterQuestion();
   }),
@@ -195,7 +196,7 @@ function showCreator(kind, after) {
     state.characters[kind] = choice;
     save();
     after();
-  });
+  }, state.wardrobe, state.unlockAll);
 }
 
 const today = () => new Date().toLocaleDateString('sv');

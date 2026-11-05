@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CATEGORIES, characterFor, hasColor, normalizeCharacter, optionCount, partSvg, randomCharacter } from '../js/character.js';
+import { categoriesFor, characterFor, hasColor, normalizeCharacter, optionCount, partSvg, randomCharacter } from '../js/character.js';
 
 const KINDS = ['child', 'mom', 'dad'];
 
-test('každá kategorie má aspoň 10 druhů pro každou postavu', () => {
+// Karty z fáze 6 mají méně možností.
+const SMALL = ['eyes', 'mouth', 'hairclip', 'pattern', 'socks'];
+
+test('každá kategorie má dost druhů pro každou postavu', () => {
   for (const kind of KINDS) {
-    for (const { id } of CATEGORIES) assert.ok(optionCount(id, kind) >= 10, `${kind} ${id}`);
+    for (const { id } of categoriesFor(kind)) assert.ok(optionCount(id, kind) >= (SMALL.includes(id) ? 5 : 10), `${kind} ${id}`);
   }
 });
 
@@ -21,7 +24,7 @@ test('stará uložená postava si nechá kůži a barvu botiček', () => {
 
 test('zvolená barva změní každý barevný díl', () => {
   for (const kind of KINDS) {
-    for (const { id } of CATEGORIES) {
+    for (const { id } of categoriesFor(kind)) {
       for (let i = 1; i < optionCount(id, kind); i++) {
         if (!hasColor(id, i)) continue;
         const base = { face: 0, hair: 0, dress: 0, shoes: 0, hat: 0, colors: {}, [id]: i };
@@ -36,7 +39,7 @@ test('zvolená barva změní každý barevný díl', () => {
 
 test('náhledy a náhodná postava se vykreslí bez undefined', () => {
   for (const kind of KINDS) {
-    for (const { id } of CATEGORIES) {
+    for (const { id } of categoriesFor(kind)) {
       for (let i = 0; i < optionCount(id, kind); i++) assert.ok(!partSvg(id, i, kind).includes('undefined'), `${id} ${i}`);
     }
     for (let n = 0; n < 50; n++) {
@@ -60,4 +63,24 @@ test('se 3 trvalými kamarády přijde místo kamaráda další vylepšení', as
   assert.equal(nextUpgrade(['fly', 'big', 'rainbow'], 0, 3), 'bubble');
   assert.equal(nextUpgrade(['fly', 'big', 'rainbow', 'bubble'], 0, 3), 'basket');
   assert.equal(nextUpgrade(['fly', 'big', 'rainbow', 'friend'], 1, 1), 'bubble');
+});
+
+test('kostým z krámku: bez nákupu zamčený, po nákupu ho Rosinka hned má', async () => {
+  const { characterLocked, costumeIndex, characterFor, CATEGORIES, optionCount, partSvg, normalizeCharacter, DEFAULT_CHARACTERS } = await import('../js/character.js');
+  const { buy, shopItems } = await import('../js/shop.js');
+  const knight = costumeIndex('costume-knight');
+  assert.ok(knight > 0);
+  assert.equal(characterLocked('costume', knight, []), true);
+  assert.equal(characterLocked('costume', 1, []), false);
+  const st = { stars: 3, room: [], pets: [], petItems: [], wardrobe: [], characters: { child: { ...DEFAULT_CHARACTERS.child } } };
+  assert.ok(shopItems('castle', st).some((i) => i.id === 'costume-knight'));
+  assert.equal(buy(st, 'costume-knight'), true);
+  assert.equal(st.characters.child.costume, knight);
+  assert.equal(characterLocked('costume', knight, st.wardrobe), false);
+  assert.ok(!shopItems('castle', st).some((i) => i.id === 'costume-knight'));
+  assert.ok(!characterFor('child', st.characters.child).includes('undefined'));
+  const c = normalizeCharacter(DEFAULT_CHARACTERS.child);
+  CATEGORIES.forEach(({ id }) => {
+    for (let i = 0; i < optionCount(id, 'child'); i++) assert.ok(!partSvg(id, i, 'child', c).includes('undefined'), `${id} ${i}`);
+  });
 });

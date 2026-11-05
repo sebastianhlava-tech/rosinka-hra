@@ -43,6 +43,9 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 .creator-actions button img { width: 13vh; height: 13vh; }
 .creator-actions .creator-dice img { width: 10vh; height: 10vh; }
 .creator-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.6vh; }
+.creator-groups { display: flex; gap: 1vw; }
+.creator-groups button { flex: 1; height: 6vh; border-radius: 999px; background: #FFE9C2; color: #6b5536; font-size: 2.4vh; font-weight: 700; }
+.creator-groups button.active { background: #3DAA4E; color: #fff; }
 .creator-tabs { display: grid; grid-template-columns: repeat(10, 1fr); gap: .6vw; }
 .creator-tabs button { min-width: 0; height: 11.5vh; border-radius: 16px; background: #FFE9C2; color: #6b5536; font-size: min(1.5vh, 1.1vw); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: background .15s, transform .15s; }
 .creator-tabs svg { flex: 1; min-height: 0; width: 86%; }

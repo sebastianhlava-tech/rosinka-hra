@@ -207,13 +207,83 @@ const PAINT = [
   { c: '#E23B44', m: `${['#E23B44', '#FFD432', '#3DAA4E', '#2F6FDE'].map((c, i) => line(`M${48 + i * 4} 128 a${14 - i * 4} ${14 - i * 4} 0 0 1 ${28 - i * 8} 0`, c, 4)).join('')}` },
 ];
 
+// Fáze 6: oči, pusa, do vlasů, vzor oblečení, ponožky, kostýmy.
+// Volba 0 u očí a pusy = jak je to v obličeji.
+const EYE = '#2b2b2b';
+const EYES = [
+  NONE,
+  { c: EYE, m: eyes(100, 24, 9) + round(80, 96, 3, 3, '#fff') + round(128, 96, 3, 3, '#fff') },
+  { c: EYE, m: eyes(100, 24, 7) + line('M62 92l-6-6M66 88l-2-8M138 92l6-6M134 88l2-8', EYE, 3) },
+  { c: EYE, m: line('M64 102q12-12 24 0M112 102q12-12 24 0', EYE, 5) },
+  { c: EYE, m: eye(76, 100, 7).replaceAll('#2b2b2b', EYE) + line('M112 100q12 -8 24 0', EYE, 5) },
+  { c: '#3DAA4E', m: round(76, 100, 10, 11, '#fff') + round(124, 100, 10, 11, '#fff') + round(76, 101, 6, 7, '#3DAA4E') + round(124, 101, 6, 7, '#3DAA4E') + round(78, 98, 2, 2, '#fff') + round(126, 98, 2, 2, '#fff') },
+  { c: EYE, m: line('M64 100h22M114 100h22', EYE, 5) + line('M66 96q10 -6 20 0M114 96q10 -6 20 0', EYE, 3) },
+];
+const MOUTHS = [
+  NONE,
+  { m: line('M84 122q16 14 32 0', '#7a3b2e', 4) },
+  { m: '<path d="M78 116q22 30 44 0z" fill="#B3372E"/><path d="M84 116h32l-3 6h-26z" fill="#fff"/>' },
+  { m: '<ellipse cx="100" cy="126" rx="9" ry="11" fill="#B3372E"/>' },
+  { m: line('M84 120q16 12 32 0', '#7a3b2e', 4) + '<path d="M95 126h12v9q-6 7-12 0z" fill="#F28BA8"/>' },
+  { m: line('M86 124q14 -8 28 0', '#7a3b2e', 4) },
+];
+const HAIRCLIPS = [
+  NONE,
+  { c: '#FF8FC0', m: '<rect x="50" y="62" width="24" height="9" rx="4" fill="#FF8FC0" transform="rotate(-24 62 66)"/><rect x="128" y="62" width="24" height="9" rx="4" fill="#FF8FC0" transform="rotate(24 140 66)"/>' },
+  { c: '#E23B3B', m: '<path d="M150 50 L126 36 L126 64Z M150 50 L174 36 L174 64Z" fill="#E23B3B"/>' + round(150, 50, 7, 7, '#B9202A') },
+  { c: '#2F6FDE', m: round(44, 82, 9, 9, '#2F6FDE') + round(156, 82, 9, 9, '#2F6FDE') },
+  { c: '#FFD432', m: '<path d="M42 78 C52 30 148 30 158 78" fill="none" stroke="#FFD432" stroke-width="10"/>' },
+  { c: '#FF8FC0', m: flowerAt(146, 54, 13, '#FF8FC0') },
+];
+const PATTERNS = [
+  NONE,
+  { c: '#FFFFFF', m: [[70, 180], [100, 176], [130, 180], [62, 210], [92, 206], [122, 210], [148, 214], [76, 238], [108, 236], [138, 240]].map(([x, y]) => round(x, y, 6, 6, '#FFFFFF')).join('') },
+  { c: '#FFFFFF', m: [176, 196, 216, 236, 256].map((y) => `<rect x="30" y="${y}" width="140" height="8" fill="#FFFFFF"/>`).join('') },
+  { c: '#FFFFFF', m: [[78, 186], [122, 186], [100, 214], [70, 240], [130, 240]].map(([x, y]) => heartAt(x, y, 1.1, '#FFFFFF')).join('') },
+  { c: '#FFFFFF', m: [[78, 186], [122, 186], [100, 214], [70, 240], [130, 240]].map(([x, y]) => starAt(x, y, 9, '#FFFFFF')).join('') },
+  { c: '#FFFFFF', m: [0, 1, 2, 3, 4].flatMap((r) => [0, 1, 2, 3, 4, 5].filter((k) => (k + r) % 2).map((k) => `<rect x="${40 + k * 20}" y="${160 + r * 20}" width="20" height="20" fill="#FFFFFF" opacity=".55"/>`)).join('') },
+];
+const SOCKS = [
+  NONE,
+  { c: '#FF8FC0', m: '<rect x="74" y="250" width="20" height="26" fill="#FF8FC0"/><rect x="106" y="250" width="20" height="26" fill="#FF8FC0"/>' },
+  { c: '#2F6FDE', m: '<rect x="74" y="248" width="20" height="28" fill="#fff"/><rect x="106" y="248" width="20" height="28" fill="#fff"/>' + [252, 262].map((y) => `<rect x="74" y="${y}" width="20" height="5" fill="#2F6FDE"/><rect x="106" y="${y}" width="20" height="5" fill="#2F6FDE"/>`).join('') },
+  { c: '#FFD432', m: '<rect x="74" y="248" width="20" height="28" fill="#FFD432"/><rect x="106" y="248" width="20" height="28" fill="#FFD432"/>' + [[80, 256], [88, 268], [112, 256], [120, 268]].map(([x, y]) => round(x, y, 3, 3, '#E23B3B')).join('') },
+  { c: '#8E4EC6', m: '<rect x="74" y="244" width="20" height="34" fill="#8E4EC6"/><rect x="106" y="244" width="20" height="34" fill="#8E4EC6"/>' },
+];
+
+// Kostým zakryje šaty. back = za postavou, head = na hlavě (místo čepice), hood = za obličejem.
+const COSTUMES = [
+  NONE,
+  { id: 'firefighter', m: '<path d="M68 160 H132 L152 258 H48Z" fill="#E23B3B"/><path d="M56 222h88M52 240h96" stroke="#FFD432" stroke-width="8"/>', head: '<path d="M46 56 C46 0 154 0 154 56Z" fill="#E23B3B"/><rect x="32" y="50" width="136" height="12" rx="6" fill="#B9202A"/>' + round(100, 30, 10, 10, '#FFD432') },
+  { id: 'doctor', m: '<path d="M68 160 H132 L150 258 H50Z" fill="#FFFFFF" stroke="#C9D1D8" stroke-width="3"/><path d="M100 160 V258" stroke="#C9D1D8" stroke-width="3"/><path d="M80 166 Q78 200 94 206 Q110 200 108 170" fill="none" stroke="#555" stroke-width="4"/>' + round(94, 210, 7, 7, '#AAB4BE') + '<path d="M120 196h16M128 188v16" stroke="#E23B3B" stroke-width="5"/>' },
+  { id: 'cook', m: '<path d="M68 160 H132 L150 258 H50Z" fill="#FFFFFF" stroke="#C9D1D8" stroke-width="3"/>' + [[88, 180], [112, 180], [88, 204], [112, 204]].map(([x, y]) => round(x, y, 4, 4, '#AAB4BE')).join(''), head: '<rect x="56" y="22" width="88" height="30" fill="#FFFFFF" stroke="#C9D1D8" stroke-width="3"/>' + [[66, 10], [100, 0], [134, 10]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="24" fill="#FFFFFF" stroke="#C9D1D8" stroke-width="3"/>`).join('') },
+  { id: 'police', m: '<path d="M68 160 H132 L150 258 H50Z" fill="#2B3A6B"/>' + starAt(120, 188, 10, '#FFD432') + '<path d="M100 160 V258" stroke="#1E2A50" stroke-width="3"/>', head: '<path d="M50 48 Q50 10 100 10 Q150 10 150 48Z" fill="#2B3A6B"/><rect x="44" y="44" width="112" height="12" rx="6" fill="#1E2A50"/>' + starAt(100, 30, 8, '#FFD432') },
+  { id: 'astronaut', shop: 'costume-astronaut', m: '<path d="M64 160 H136 L154 258 H46Z" fill="#F2F5F8" stroke="#C9D1D8" stroke-width="3"/><rect x="80" y="180" width="40" height="28" rx="6" fill="#AAB4BE"/>' + round(90, 194, 4, 4, '#E23B3B') + round(110, 194, 4, 4, '#3DAA4E'), head: '<circle cx="100" cy="102" r="78" fill="rgba(190,225,255,.22)" stroke="#C9D1D8" stroke-width="7"/>' },
+  { id: 'princess', m: '<path d="M76 160 H124 L132 196 Q178 232 168 260 H32 Q22 232 68 196Z" fill="#FF8FC0"/><path d="M68 198 H132" stroke="#FFD432" stroke-width="8"/>', head: '<path d="M70 50 L76 24 L88 40 L100 16 L112 40 L124 24 L130 50Z" fill="#FFD432" stroke="#E2B41C" stroke-width="3"/>' + round(100, 34, 4, 4, '#2F6FDE') },
+  { id: 'knight', shop: 'costume-knight', m: '<path d="M66 160 H134 L150 258 H50Z" fill="#B8BEC6"/><path d="M66 190 H134 M60 222 H140" stroke="#8A8F96" stroke-width="5"/>' + starAt(100, 206, 12, '#E23B3B'), head: '<path d="M44 66 C44 4 156 4 156 66Z" fill="#B8BEC6"/><path d="M100 6 q20 -26 34 -8 q-18 0 -34 8z" fill="#E23B3B"/>' },
+  { id: 'fairy', shop: 'costume-fairy', m: '<path d="M72 160 H128 L156 258 H44Z" fill="#9BE3C4"/>' + [[70, 230], [100, 240], [130, 230]].map(([x, y]) => starAt(x, y, 7, '#FFD432')).join(''), back: '<ellipse cx="46" cy="170" rx="44" ry="26" fill="rgba(200,240,255,.8)" stroke="#9BD6F2" stroke-width="3" transform="rotate(-24 46 170)"/><ellipse cx="154" cy="170" rx="44" ry="26" fill="rgba(200,240,255,.8)" stroke="#9BD6F2" stroke-width="3" transform="rotate(24 154 170)"/>', head: flowerAt(70, 50, 9, '#FF8FC0') + flowerAt(100, 42, 10, '#FFFFFF') + flowerAt(130, 50, 9, '#FF8FC0') },
+  { id: 'bear', shop: 'costume-bear', m: '<path d="M68 156 H132 L150 258 H50Z" fill="#8F5A30"/><ellipse cx="100" cy="212" rx="28" ry="34" fill="#D2A679"/>', hood: round(100, 104, 76, 76, '#8F5A30') + round(46, 44, 20, 20, '#8F5A30') + round(154, 44, 20, 20, '#8F5A30') + round(46, 44, 10, 10, '#D2A679') + round(154, 44, 10, 10, '#D2A679') },
+];
+
+// Kostýmy a doplňky z krámku: bez nákupu jsou zamčené (pokud rodič neodemkl vše).
+export function characterLocked(category, i, owned = []) {
+  const shop = category === 'costume' ? COSTUMES[i]?.shop : null;
+  return Boolean(shop) && !owned.includes(shop);
+}
+export const costumeIndex = (shopId) => COSTUMES.findIndex((c) => c.shop === shopId);
+
 const paint = (entry, color) => tint(entry.m, entry.c, color);
 
 const foot = (i, color, skin) => tint(SHOES[i].m, SHOES[i].c, color).replaceAll('SKIN', skin);
 const shoesPart = (i, color, skin = '#F7CFA8') => { const f = foot(i, color, skin); return f + `<g transform="matrix(-1 0 0 1 200 0)">${f}</g>`; };
 const dressPart = (i, color) => tint(DRESS[i].body ?? `<path d="M72 160 H128 L156 258 H44Z" fill="${DRESS[i].c}"/>${DRESS[i].extra}`, DRESS[i].c, color);
 const shirtPart = (i, color) => `<rect x="62" y="126" width="76" height="92" rx="16" fill="${color ?? DRESS[i].c}"/>${SHIRTS[i]}<rect x="68" y="206" width="30" height="72" fill="#3F4A63"/><rect x="102" y="206" width="30" height="72" fill="#3F4A63"/>`;
-const facePart = (i, skin = '#F7CFA8') => `${round(100, 104, 62, 62, skin)}${FACES[i].eye}${round(62, 118, 11, 8, '#F7A9A0')}${round(138, 118, 11, 8, '#F7A9A0')}${FACES[i].mouth}`;
+const facePart = (i, skin = '#F7CFA8', c = { colors: {} }) => `${round(100, 104, 62, 62, skin)}${
+  c.eyes ? paint(EYES[c.eyes], c.colors.eyes) : FACES[i].eye}${round(62, 118, 11, 8, '#F7A9A0')}${round(138, 118, 11, 8, '#F7A9A0')}${
+  c.mouth ? MOUTHS[c.mouth].m : FACES[i].mouth}`;
+const DRESS_CLIP = '<clipPath id="dress-clip"><path d="M72 160 H128 L156 258 H44Z"/></clipPath>';
+const patternPart = (c) => (c.pattern ? `${DRESS_CLIP}<g clip-path="url(#dress-clip)">${paint(PATTERNS[c.pattern], c.colors.pattern)}</g>` : '');
+const costumeOf = (c) => COSTUMES[c.costume] ?? NONE;
 const hairOf = (kind, i, color) => {
   const h = (kind === 'dad' ? DAD_HAIR : HAIR)[i];
   return { back: tint(h.back, h.c, color), front: tint(h.front, h.c, color) };
@@ -223,18 +293,23 @@ const figure = (body) => `<svg xmlns="http://www.w3.org/2000/svg" width="200" he
 const crop = (body, box) => `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="${box}">${body}</svg>`;
 const head = (body) => `<g transform="translate(25 -6) scale(.75)">${body}</g>`;
 
-const TOP_OF_HEAD = (c, hair) => facePart(c.face, c.colors.face) + paint(PAINT[c.paint], c.colors.paint) + hair.front + paint(GLASSES[c.glasses], c.colors.glasses) + paint(HATS[c.hat], c.colors.hat);
+const TOP_OF_HEAD = (c, hair) => (costumeOf(c).hood ?? '') + facePart(c.face, c.colors.face, c) + paint(PAINT[c.paint], c.colors.paint) + hair.front
+  + paint(HAIRCLIPS[c.hairclip] ?? NONE, c.colors.hairclip) + paint(GLASSES[c.glasses], c.colors.glasses)
+  + (costumeOf(c).head ?? paint(HATS[c.hat], c.colors.hat));
 
 function childSvg(c) {
   const skin = c.colors.face;
   const hair = hairOf('child', c.hair, c.colors.hair);
+  const costume = costumeOf(c);
   return figure(
-    paint(BACK[c.back], c.colors.back)
+    (costume.back ?? '')
+    + paint(BACK[c.back], c.colors.back)
     + hair.back
     + `<rect x="74" y="244" width="20" height="34" fill="${skin}"/><rect x="106" y="244" width="20" height="34" fill="${skin}"/>`
+    + paint(SOCKS[c.socks] ?? NONE, c.colors.socks)
     + shoesPart(c.shoes, c.colors.shoes, skin)
     + `<path d="M70 174 L32 214" stroke="${skin}" stroke-width="17" stroke-linecap="round"/><path d="M130 174 L168 214" stroke="${skin}" stroke-width="17" stroke-linecap="round"/>`
-    + dressPart(c.dress, c.colors.dress)
+    + (costume.m ? costume.m : dressPart(c.dress, c.colors.dress) + patternPart(c))
     + paint(NECKLACES[c.necklace], c.colors.necklace)
     + TOP_OF_HEAD(c, hair)
     + `<g transform="translate(168 212)">${paint(HAND[c.hand], c.colors.hand)}</g>`,
@@ -252,7 +327,7 @@ function adultSvg(kind, c) {
     + `<rect x="74" y="210" width="20" height="66" fill="${skin}"/><rect x="106" y="210" width="20" height="66" fill="${skin}"/>`
     + shoesPart(c.shoes, c.colors.shoes, skin)
     + `<path d="M72 142 L36 196" stroke="${skin}" stroke-width="16" stroke-linecap="round"/><path d="M128 142 L164 196" stroke="${skin}" stroke-width="16" stroke-linecap="round"/>`
-    + (dad ? shirtPart(c.dress, c.colors.dress) : `<g transform="translate(20 -30) scale(.8 .98)">${dressPart(c.dress, c.colors.dress)}</g>`)
+    + (dad ? shirtPart(c.dress, c.colors.dress) : `<g transform="translate(20 -30) scale(.8 .98)">${dressPart(c.dress, c.colors.dress)}${patternPart(c)}</g>`)
     + `<g transform="translate(20 -2) scale(.8)">${paint(NECKLACES[c.necklace], c.colors.necklace)}</g>`
     + head(TOP_OF_HEAD(c, hair))
     + `<g transform="translate(164 194)">${paint(HAND[c.hand], c.colors.hand)}</g>`,
@@ -261,7 +336,7 @@ function adultSvg(kind, c) {
 
 // Starší uložená postava měla barvu kůže v obličeji a barvu botiček v jejich čísle.
 const OLD_SHOES = ['#E23B3B', '#2F6FDE', '#FFD432', '#FF8FC0', '#FFFFFF'];
-const NO_EXTRAS = { glasses: 0, necklace: 0, back: 0, hand: 0, paint: 0 };
+const NO_EXTRAS = { glasses: 0, necklace: 0, back: 0, hand: 0, paint: 0, eyes: 0, mouth: 0, hairclip: 0, pattern: 0, socks: 0, costume: 0 };
 
 export function normalizeCharacter(choice) {
   if (choice.colors) return { ...NO_EXTRAS, ...choice, colors: { ...choice.colors } };
@@ -287,7 +362,18 @@ export function partSvg(category, i, kind = 'child', choice = { colors: {} }) {
   }
   if (category === 'dress') return kind === 'dad' ? crop(shirtPart(i, color), '30 120 140 165') : crop(dressPart(i, color), '20 150 160 120');
   if (category === 'shoes') return crop(shoesPart(i, color, skin), '50 232 100 70');
+  if (category === 'eyes' || category === 'mouth') return crop(facePart(choice.face ?? 0, skin, { ...choice, [category]: i, colors: choice.colors }), '30 34 140 140');
   if (i === 0) return noneSign;
+  if (category === 'hairclip') {
+    const h = hairOf(kind, choice.hair ?? 0, choice.colors.hair);
+    return crop(h.back + blank + h.front + paint(HAIRCLIPS[i], color), '0 0 200 200');
+  }
+  if (category === 'pattern') return crop(dressPart(choice.dress ?? 0, choice.colors.dress) + patternPart({ pattern: i, colors: { pattern: color } }), '20 150 160 120');
+  if (category === 'socks') return crop(`<rect x="74" y="232" width="20" height="46" fill="${skin}"/><rect x="106" y="232" width="20" height="46" fill="${skin}"/>${paint(SOCKS[i], color)}${shoesPart(choice.shoes ?? 0, choice.colors.shoes, skin)}`, '50 228 100 72');
+  if (category === 'costume') {
+    const k = COSTUMES[i];
+    return crop(`${k.back ?? ''}${k.m}${k.hood ?? ''}${round(100, 104, 62, 62, skin)}${eyes(100, 24, 7)}${k.head ?? ''}`, '0 -20 200 290');
+  }
   if (category === 'hat') return crop(paint(HATS[i], color), '10 -24 180 110');
   if (category === 'glasses') return crop(blank + paint(GLASSES[i], color), '36 50 128 100');
   if (category === 'necklace') return crop(`<rect x="64" y="150" width="72" height="90" rx="14" fill="#E9EDF2"/>${paint(NECKLACES[i], color)}`, '50 148 100 90');
@@ -296,14 +382,14 @@ export function partSvg(category, i, kind = 'child', choice = { colors: {} }) {
   return crop(blank + paint(PAINT[i], color), '30 34 140 140');
 }
 
-const LISTS = { hat: HATS, glasses: GLASSES, necklace: NECKLACES, back: BACK, hand: HAND, paint: PAINT, shoes: SHOES, face: FACES, dress: DRESS };
+const LISTS = { hat: HATS, glasses: GLASSES, necklace: NECKLACES, back: BACK, hand: HAND, paint: PAINT, shoes: SHOES, face: FACES, dress: DRESS, eyes: EYES, mouth: MOUTHS, hairclip: HAIRCLIPS, pattern: PATTERNS, socks: SOCKS, costume: COSTUMES };
 
 export function optionCount(category, kind) {
   if (category === 'hair') return (kind === 'dad' ? DAD_HAIR : HAIR).length;
   return LISTS[category].length;
 }
 
-export const hasColor = (category, i) => ['face', 'hair', 'dress'].includes(category) || Boolean(LISTS[category][i].c);
+export const hasColor = (category, i) => ['face', 'hair', 'dress'].includes(category) || Boolean(LISTS[category][i]?.c);
 
 const SKINS = ['#FFE9D6', '#FFE0C4', '#F7CFA8', '#E8B48A', '#D29A6B', '#B57F55', '#7D5235', '#5A3A25'];
 const HAIR_COLORS = ['#F3DFA0', '#E7B93F', '#C8562B', '#8A5A33', '#4A3020', '#2B2320', '#9A9A9A', '#F28BBE', '#8E4EC6', '#2F6FDE', '#2FB6B0', '#3DAA4E'];
@@ -313,25 +399,33 @@ export const paletteFor = (category) => ({ face: SKINS, hair: HAIR_COLORS }[cate
 
 const dice = (n) => Math.floor(Math.random() * n);
 
-// Kostka mění všechno kromě barvy kůže.
+// Kostka mění všechno kromě barvy kůže. Kostým nechá být, aby byly vidět šaty.
 export function randomCharacter(kind, choice) {
   const c = { ...choice, colors: { face: choice.colors.face } };
-  for (const { id } of CATEGORIES) c[id] = dice(optionCount(id, kind));
+  for (const { id } of categoriesFor(kind)) c[id] = id === 'costume' ? 0 : dice(optionCount(id, kind));
   return c;
 }
 
+// Karty jsou ve dvou skupinách: Já a Oblečení. only = jen pro tuto postavu.
 export const CATEGORIES = [
-  { id: 'face', label: 'Obličej' },
-  { id: 'hair', label: 'Vlasy' },
-  { id: 'dress', label: 'Oblečení' },
-  { id: 'shoes', label: 'Botičky' },
-  { id: 'hat', label: 'Čepice' },
-  { id: 'glasses', label: 'Brýle' },
-  { id: 'necklace', label: 'Na krk' },
-  { id: 'back', label: 'Na záda' },
-  { id: 'hand', label: 'Do ruky' },
-  { id: 'paint', label: 'Na tvář' },
+  { id: 'face', label: 'Obličej', group: 'me' },
+  { id: 'eyes', label: 'Oči', group: 'me' },
+  { id: 'mouth', label: 'Pusa', group: 'me' },
+  { id: 'paint', label: 'Na tvář', group: 'me' },
+  { id: 'hair', label: 'Vlasy', group: 'me' },
+  { id: 'hairclip', label: 'Do vlasů', group: 'me' },
+  { id: 'dress', label: 'Oblečení', group: 'clothes' },
+  { id: 'pattern', label: 'Vzor', group: 'clothes', only: ['child', 'mom'] },
+  { id: 'costume', label: 'Kostým', group: 'clothes', only: ['child'] },
+  { id: 'socks', label: 'Ponožky', group: 'clothes', only: ['child'] },
+  { id: 'shoes', label: 'Botičky', group: 'clothes' },
+  { id: 'hat', label: 'Čepice', group: 'clothes' },
+  { id: 'glasses', label: 'Brýle', group: 'clothes' },
+  { id: 'necklace', label: 'Na krk', group: 'clothes' },
+  { id: 'back', label: 'Na záda', group: 'clothes' },
+  { id: 'hand', label: 'Do ruky', group: 'clothes' },
 ];
+export const categoriesFor = (kind) => CATEGORIES.filter((c) => !c.only || c.only.includes(kind));
 
 export const DEFAULT_CHARACTERS = {
   child: { face: 0, hair: 0, dress: 0, shoes: 0, hat: 1 },

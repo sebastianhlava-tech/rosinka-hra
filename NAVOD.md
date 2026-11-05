@@ -71,6 +71,15 @@ Narozeniny: v Pro rodiče zaškrtni „Dnes má narozeniny“. Na úvodní obraz
 
 V Pro rodiče jde vypnout zvířátka v pozadí a bouřku.
 
+## Tvorba postavičky a skříň
+
+Karty jsou ve dvou skupinách:
+- **Já**: obličej, oči, pusa, na tvář, vlasy, do vlasů.
+- **Oblečení**: oblečení, vzor, kostým, ponožky, botičky, čepice, brýle, na krk, na záda, do ruky.
+
+Kostýmy: hasič, doktorka, kuchař, policista, princezna jsou hned. Kosmonaut, rytíř, víla a medvídek se koupí v krámku (večer, hrad, hřiště, ZOO). Po koupi si ho Rosinka hned oblékne a zůstane ve skříni.
+V Pro rodiče jde „Odemknout všechny kostýmy“.
+
 ## Kamarádi
 
 Za postup ve stopě učení dostane dítě trvalého kamaráda (nejvýš 3). Kamarádi běží s Rosinkou v každé hře a chytají hvězdy, které Rosinka mine.

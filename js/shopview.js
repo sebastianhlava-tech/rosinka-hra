@@ -1,6 +1,7 @@
 // Okno krámku: dítě ťukne na věc, potom ťuká hvězdičky na pult. Hlas počítá.
 // Když je hvězdiček dost, prodavač poděkuje a dá věc. Nic se neztratí.
 import { artSvg } from './art.js';
+import { DEFAULT_CHARACTERS, costumeIndex, normalizeCharacter, partSvg } from './character.js';
 import { SHOPS, buy, shopItems } from './shop.js';
 import { say } from './voice.js';
 
@@ -13,6 +14,9 @@ export function openShop(root, biome, state, onDone) {
   let chosen = null;
   let paid = 0;
   let busy = false;
+  // Kostým se ukáže na postavičce, ostatní věci jako obrázek.
+  const child = normalizeCharacter(state.characters?.child ?? DEFAULT_CHARACTERS.child);
+  const pic = (it) => (it.kind === 'wear' ? partSvg('costume', costumeIndex(it.id), 'child', child) : artSvg(it.art));
 
   root.innerHTML = `
     <div class="shop-seller">${artSvg(shop.seller)}</div>
@@ -25,7 +29,7 @@ export function openShop(root, biome, state, onDone) {
   const draw = () => {
     counter.innerHTML = items.map((it) => `
       <button class="shop-item ${it === chosen ? 'chosen' : ''} ${it.price > state.stars ? 'dear' : ''}" data-id="${it.id}">
-        <span class="shop-art">${artSvg(it.art)}</span>
+        <span class="shop-art">${pic(it)}</span>
         <span class="shop-price">${Array.from({ length: it.price }, (_, i) => `<i class="${it === chosen && i < paid ? 'paid' : ''}">${starIcon}</i>`).join('')}</span>
       </button>`).join('');
     const left = Math.min(state.stars - paid, MAX_SHOWN);

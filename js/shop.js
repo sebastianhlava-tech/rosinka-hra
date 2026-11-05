@@ -4,7 +4,9 @@
 //   eat  = drží ji v ruce a postupně ji sní („Mňam!“),
 //   hand = drží ji do konce hry (balónek: skáče výš, lucerna: svítí),
 //   room = zůstane na poličce v pokojíčku,
-//   pet  = doplněk pro kamaráda, hned ho má na sobě.
+//   pet  = doplněk pro kamaráda, hned ho má na sobě,
+//   wear = kostým do skříně, Rosinka si ho hned oblékne.
+import { costumeIndex } from './character.js';
 import { petSlotFor } from './pets.js';
 
 export const RUN_STARS_PER_STAR = 20;
@@ -44,7 +46,8 @@ export const SHOPS = {
   ] },
   dusk: { seller: 'monkey', cs: `Tady je noční stánek. ${BUY}`, en: `Here is the night stand. ${BUY_EN}`, items: [
     item('nightstar', 'star', 1, 'room', 'Hvězdička stojí jednu hvězdičku.', 'The little star costs one star.'),
-    item('nightmoon', 'moon', 2, 'room', 'Měsíček stojí dvě hvězdičky.', 'The little moon costs two stars.'),
+    item('nightmoon', 'moon', 2, 'room', 'Měsíček stojí dvě hvězdičky.', 'The little moon costs two stars.', { sold: false }),
+    item('costume-astronaut', 'star', 2, 'wear', 'Kostým kosmonauta stojí dvě hvězdičky.', 'The astronaut costume costs two stars.', { wear: 'Jsi kosmonaut!', wearEn: 'You are an astronaut!' }),
     item('lantern', 'lantern', 3, 'hand', 'Lucernička stojí tři hvězdičky.', 'The lantern costs three stars.'),
   ] },
 };
@@ -60,17 +63,20 @@ Object.assign(SHOPS, {
   zoo: { seller: 'elephant', cs: `Tady je stánek v ZOO. ${BUY}`, en: `Here is the zoo stand. ${BUY_EN}`, items: [
     find('balloon'),
     find('icecream-2'),
-    item('plushlion', 'lion', 3, 'room', 'Plyšový lev stojí tři hvězdičky.', 'The toy lion costs three stars.'),
+    item('plushlion', 'lion', 3, 'room', 'Plyšový lev stojí tři hvězdičky.', 'The toy lion costs three stars.', { sold: false }),
+    item('costume-bear', 'teddy', 3, 'wear', 'Kostým medvídka stojí tři hvězdičky.', 'The bear costume costs three stars.', { wear: 'Jsi medvídek!', wearEn: 'You are a little bear!' }),
   ] },
   castle: { seller: 'horse', cs: `Tady je hradní stánek. ${BUY}`, en: `Here is the castle stand. ${BUY_EN}`, items: [
     item('flag', 'flag', 1, 'hand', 'Vlaječka stojí jednu hvězdičku.', 'The flag costs one star.'),
     item('petcape', 'petcape', 2, 'pet', 'Plášť pro kamaráda stojí dvě hvězdičky.', 'A cape for your friend costs two stars.', { wear: 'Kamarád má plášť!', wearEn: 'Your friend has a cape!' }),
-    item('toyshield', 'shield', 3, 'room', 'Štít stojí tři hvězdičky.', 'The shield costs three stars.'),
+    item('toyshield', 'shield', 3, 'room', 'Štít stojí tři hvězdičky.', 'The shield costs three stars.', { sold: false }),
+    item('costume-knight', 'shield', 3, 'wear', 'Kostým rytíře stojí tři hvězdičky.', 'The knight costume costs three stars.', { wear: 'Jsi rytíř!', wearEn: 'You are a knight!' }),
   ] },
   playground: { seller: 'pig', cs: `Tady je stánek u hřiště. ${BUY}`, en: `Here is the playground stand. ${BUY_EN}`, items: [
     find('icecream-1'),
     item('toyball', 'ball', 2, 'room', 'Míč stojí dvě hvězdičky.', 'The ball costs two stars.'),
-    item('toybucket', 'bucket', 3, 'room', 'Kyblíček stojí tři hvězdičky.', 'The bucket costs three stars.'),
+    item('toybucket', 'bucket', 3, 'room', 'Kyblíček stojí tři hvězdičky.', 'The bucket costs three stars.', { sold: false }),
+    item('costume-fairy', 'flower', 3, 'wear', 'Kostým víly stojí tři hvězdičky.', 'The fairy costume costs three stars.', { wear: 'Jsi víla!', wearEn: 'You are a fairy!' }),
   ] },
 });
 
@@ -97,7 +103,8 @@ export const SHOP_LINES = [
 export function shopItems(biome, state) {
   return SHOPS[biome].items.filter((i) => i.sold
     && !(i.kind === 'room' && state.room.includes(i.id))
-    && !(i.kind === 'pet' && (!state.pets?.length || state.petItems?.includes(i.id))));
+    && !(i.kind === 'pet' && (!state.pets?.length || state.petItems?.includes(i.id)))
+    && !(i.kind === 'wear' && (state.unlockAll || state.wardrobe?.includes(i.id))));
 }
 
 // Hvězdy z běhu: každých 20 sebraných dá 1 hvězdičku do peněženky. Vrátí, kolik přibylo.
@@ -124,6 +131,10 @@ export function buy(state, id) {
     state.petItems = [...new Set([...(state.petItems ?? []), id])];
     const slot = petSlotFor(id);
     if (slot && state.pets?.[0]) state.pets[0][slot.cat] = slot.i;
+  }
+  if (it.kind === 'wear') {
+    state.wardrobe = [...new Set([...(state.wardrobe ?? []), id])];
+    if (state.characters?.child) state.characters.child.costume = costumeIndex(id);
   }
   return true;
 }
