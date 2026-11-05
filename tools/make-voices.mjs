@@ -5,8 +5,8 @@
 //   node tools/make-voices.mjs --go                    vytvoří chybějící věty a ZIP pro iPad
 //   node tools/make-voices.mjs --skip nahravky.zip     přeskočí věty, které už máte nahrané sami
 //
-// Potřebuje proměnné prostředí (klíč nikdy nepatří do kódu):
-//   ELEVENLABS_API_KEY   klíč z ElevenLabs
+// Když chybí proměnné prostředí, skript se na ně zeptá (klíč nikdy nepatří do kódu):
+//   ELEVENLABS_API_KEY   klíč z ElevenLabs (při psaní není vidět)
 //   ELEVEN_VOICE_MOM     id klonu hlasu maminky (může chybět)
 //   ELEVEN_VOICE_DAD     id klonu hlasu tatínka (může chybět)
 //   ELEVEN_MODEL         model, výchozí eleven_multilingual_v2
@@ -16,6 +16,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createInterface } from 'node:readline/promises';
 import { SENTENCES, parseVoiceFile, voiceFileName } from '../js/questions.js';
 import { makeZip, readZip } from '../js/zip.js';
 
@@ -24,7 +25,48 @@ const ZIP = join(OUT, 'rosinka-hlasy.zip');
 const args = process.argv.slice(2);
 const go = args.includes('--go');
 const model = process.env.ELEVEN_MODEL || 'eleven_multilingual_v2';
-const voices = { mom: process.env.ELEVEN_VOICE_MOM, dad: process.env.ELEVEN_VOICE_DAD };
+
+// Zeptá se v Terminálu.
+async function ask(question) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await rl.question(question);
+  rl.close();
+  return answer.trim();
+}
+
+// Zeptá se tak, že není vidět, co člověk píše.
+function askHidden(question) {
+  return new Promise((resolve) => {
+    const { stdin } = process;
+    let answer = '';
+    process.stdout.write(question);
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    const onData = (chunk) => {
+      for (const ch of chunk) {
+        if (ch === '\u0003') process.exit(1);
+        if (ch === '\r' || ch === '\n') {
+          stdin.setRawMode(false);
+          stdin.pause();
+          stdin.off('data', onData);
+          process.stdout.write('\n');
+          resolve(answer.trim());
+          return;
+        }
+        answer = ch === '\u007f' ? answer.slice(0, -1) : answer + ch;
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
+
+const env = process.env;
+if (!env.ELEVEN_VOICE_MOM && !env.ELEVEN_VOICE_DAD && process.stdin.isTTY) {
+  env.ELEVEN_VOICE_MOM = await ask('Voice ID maminky (Enter = přeskočit): ');
+  env.ELEVEN_VOICE_DAD = await ask('Voice ID tatínka (Enter = přeskočit): ');
+}
+const voices = { mom: env.ELEVEN_VOICE_MOM, dad: env.ELEVEN_VOICE_DAD };
 
 async function skipped() {
   const keys = new Set();
@@ -72,14 +114,23 @@ if (!go) {
   console.log('Nic jsem nevytvořil. Pro vytvoření přidej --go.');
   process.exit(0);
 }
-if (!process.env.ELEVENLABS_API_KEY) {
+if (!env.ELEVENLABS_API_KEY && process.stdin.isTTY) {
+  env.ELEVENLABS_API_KEY = await askHidden('API klíč z ElevenLabs (při psaní není vidět): ');
+}
+if (!env.ELEVENLABS_API_KEY) {
   console.log('Chybí ELEVENLABS_API_KEY.');
   process.exit(1);
 }
 
 let done = 0;
 for (const { kind, s, file } of todo) {
-  writeFileSync(file, await speak(voices[kind], s.text));
+  try {
+    writeFileSync(file, await speak(voices[kind], s.text));
+  } catch (e) {
+    console.log(`Chyba: ${e.message}`);
+    console.log('Zkontroluj API klíč a Voice ID. Hotové věty zůstaly ve složce voices/. Další spuštění udělá jen zbytek.');
+    process.exit(1);
+  }
   done++;
   console.log(`${done}/${todo.length} ${kind} ${s.lang}: ${s.text}`);
 }
