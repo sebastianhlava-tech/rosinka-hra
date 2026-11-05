@@ -19,11 +19,11 @@ const ITEMS = {
   cow: round(36, 72, 24, 13, '#E8C5B0') + round(164, 72, 24, 13, '#E8C5B0') + '<path d="M62 44q-8-26 8-30q2 18 10 24zM138 44q8-26-8-30q-2 18-10 24z" fill="#D9B16A"/>' + round(100, 95, 66, 62, '#fff') + round(68, 72, 22, 24, '#333') + round(140, 118, 18, 16, '#333') + round(100, 138, 48, 32, '#F6B8C6') + eyes(88) + round(84, 138, 6, 7, '#7d4957') + round(116, 138, 6, 7, '#7d4957'),
   duck: round(95, 138, 70, 46, '#FFD432') + round(112, 72, 44, 44, '#FFD432') + '<path d="M150 66 L190 78 L150 90Z" fill="#FF8A1F"/>' + eye(122, 62, 6) + '<path d="M50 130q40 34 76 0" fill="none" stroke="#E2B41C" stroke-width="6" stroke-linecap="round"/>',
   fish: '<path d="M40 100 L6 62 V138Z" fill="#E86A1F"/>' + round(108, 100, 76, 52, '#FF9A3C') + '<path d="M95 52q20-26 40-4z" fill="#E86A1F"/>' + '<path d="M84 72q18 28 0 56" fill="none" stroke="#fff" stroke-width="10"/><path d="M118 70q16 30 0 60" fill="none" stroke="#fff" stroke-width="10" opacity=".6"/>' + eye(152, 88, 8),
-  horse: '<path d="M70 30 L82 6 L96 30zM130 30 L118 6 L104 30z" fill="#8A5A33"/><rect x="62" y="20" width="76" height="120" rx="38" fill="#A9713F"/><rect x="58" y="108" width="84" height="76" rx="36" fill="#D7B28D"/>' + eyes(76, 28) + round(84, 150, 6, 8, '#5b3a22') + round(116, 150, 6, 8, '#5b3a22') + '<path d="M100 14q-24 24-12 54q10-10 12-14q2 4 12 14q12-30-12-54z" fill="#3b2415"/>',
+  horse: '<path d="M44 198 C40 140 50 96 78 62 C96 40 124 34 146 46 L182 92 C194 110 188 134 166 138 C150 140 136 132 124 122 C112 142 110 170 118 198Z" fill="#A9713F"/><path d="M96 52 L102 14 L122 44Z" fill="#8A5A33"/><path d="M101 26 L104 44 L114 42Z" fill="#E8B9A0"/>' + round(166, 118, 24, 21, '#D7B28D') + round(174, 112, 4, 6, '#5b3a22') + '<path d="M92 46 C68 54 52 82 46 122 C42 152 40 178 42 198 L26 198 C20 160 26 100 48 68 C62 50 78 42 92 46Z M106 44 q-12 14 2 28 q8 -16 -2 -28z" fill="#3b2415"/>' + eye(126, 76, 7) + '<path d="M150 134 q12 7 24 0" fill="none" stroke="#5b3a22" stroke-width="4" stroke-linecap="round"/>',
   pig: '<path d="M46 62 L40 22 L84 42zM154 62 L160 22 L116 42z" fill="#F295B2"/>' + round(100, 108, 72, 68, '#F9ADC4') + eyes(90) + round(100, 126, 32, 22, '#F295B2') + round(88, 126, 6, 9, '#a84f6c') + round(112, 126, 6, 9, '#a84f6c') + smile(156, 14),
   sheep: [[58, 66], [100, 48], [142, 66], [40, 108], [160, 108], [58, 150], [100, 164], [142, 150]].map(([x, y]) => round(x, y, 34, 34, '#F2EFE7')).join('') + round(32, 96, 20, 12, '#3b3b3b') + round(168, 96, 20, 12, '#3b3b3b') + round(100, 106, 50, 56, '#3b3b3b') + eye(80, 94, 6).replace('#2b2b2b', '#fff').replace('#fff"/>', '#222"/>') + eye(120, 94, 6).replace('#2b2b2b', '#fff').replace('#fff"/>', '#222"/>') + smile(132, 10, '#fff'),
   hen: '<path d="M78 34q6-26 18-10q6-20 18-2q14-12 12 16z" fill="#E23B3B"/>' + round(100, 80, 44, 46, '#fff') + round(92, 140, 66, 48, '#fff') + '<path d="M144 76 L178 88 L144 100Z" fill="#FF8A1F"/><path d="M136 102q12 26 2 30q-14-6-12-28z" fill="#E23B3B"/>' + eye(118, 72, 6) + '<path d="M52 128q30 34 58 0" fill="none" stroke="#ddd" stroke-width="7" stroke-linecap="round"/><path d="M80 186v12M110 186v12" stroke="#FF8A1F" stroke-width="7"/>',
-  rabbit: '<rect x="56" y="4" width="34" height="96" rx="17" fill="#CFCFD6"/><rect x="110" y="4" width="34" height="96" rx="17" fill="#CFCFD6"/><rect x="66" y="18" width="14" height="66" rx="7" fill="#F6B8C6"/><rect x="120" y="18" width="14" height="66" rx="7" fill="#F6B8C6"/>' + round(100, 130, 62, 58, '#E4E4EA') + eyes(120, 26) + '<path d="M93 136h14l-7 8z" fill="#E86A8A"/><rect x="90" y="150" width="9" height="14" fill="#fff" stroke="#bbb"/><rect x="101" y="150" width="9" height="14" fill="#fff" stroke="#bbb"/>',
+  rabbit: '<rect x="56" y="4" width="34" height="96" rx="17" fill="#B9A28E"/><rect x="110" y="4" width="34" height="96" rx="17" fill="#B9A28E"/><rect x="66" y="18" width="14" height="66" rx="7" fill="#F6B8C6"/><rect x="120" y="18" width="14" height="66" rx="7" fill="#F6B8C6"/>' + round(100, 130, 62, 58, '#CDB8A4') + eyes(120, 26) + '<path d="M93 136h14l-7 8z" fill="#E86A8A"/><rect x="90" y="150" width="9" height="14" fill="#fff" stroke="#bbb"/><rect x="101" y="150" width="9" height="14" fill="#fff" stroke="#bbb"/>',
   bear: round(44, 50, 28, 28, '#7A4B28') + round(156, 50, 28, 28, '#7A4B28') + round(44, 50, 14, 14, '#C68A52') + round(156, 50, 14, 14, '#C68A52') + round(100, 105, 72, 72, '#8F5A30') + round(100, 132, 36, 28, '#D2A679') + eyes(90) + round(100, 120, 13, 9, '#2b2b2b') + smile(138, 12),
   elephant: round(30, 88, 30, 52, '#8D9DB0') + round(170, 88, 30, 52, '#8D9DB0') + round(30, 88, 16, 34, '#E8B9C4') + round(170, 88, 16, 34, '#E8B9C4') + round(100, 84, 58, 58, '#A5B4C6') + '<path d="M82 120 C80 170 90 192 118 190 L118 172 C104 172 118 150 118 120Z" fill="#A5B4C6"/>' + eyes(76, 28),
   giraffe: '<path d="M78 20v22M122 20v22" stroke="#C78A2E" stroke-width="9"/><circle cx="78" cy="16" r="9" fill="#8A5A33"/><circle cx="122" cy="16" r="9" fill="#8A5A33"/>' + round(46, 66, 22, 10, '#F4C24E') + round(154, 66, 22, 10, '#F4C24E') + '<rect x="58" y="34" width="84" height="130" rx="42" fill="#F4C24E"/>' + round(76, 58, 11, 9, '#B9772A') + round(130, 112, 11, 9, '#B9772A') + round(68, 116, 9, 8, '#B9772A') + round(132, 62, 8, 7, '#B9772A') + round(100, 150, 44, 32, '#F9DD9B') + eyes(90, 26) + round(86, 150, 5, 7, '#7c5a22') + round(114, 150, 5, 7, '#7c5a22') + smile(165, 12),
@@ -59,7 +59,7 @@ const ITEMS = {
   sandcastle: '<rect x="26" y="96" width="148" height="88" fill="#E8C87C"/><rect x="62" y="50" width="76" height="60" fill="#F0D592"/><path d="M26 96h20v-16h20v16h20v-16h28v16h20v-16h20v16h20zM62 50h16V36h14v14h16V36h14v14h16z" fill="#F0D592"/><rect x="86" y="140" width="28" height="44" rx="14" fill="#B58F4C"/><path d="M100 36V10l26 10-26 10" fill="#E23B3B" stroke="#6b4a1e" stroke-width="3"/>',
   shell: '<path d="M100 176 L22 96 C40 26 160 26 178 96Z" fill="#FFB7A8"/><path d="M100 176 L60 52M100 176 L100 42M100 176 L140 52M100 176 L34 76M100 176 L166 76" stroke="#E98A78" stroke-width="7"/>',
   snowman: round(100, 142, 56, 50, '#FFFFFF') + round(100, 66, 38, 36, '#FFFFFF') + '<ellipse cx="100" cy="142" rx="56" ry="50" fill="none" stroke="#C9DCEB" stroke-width="3"/><ellipse cx="100" cy="66" rx="38" ry="36" fill="none" stroke="#C9DCEB" stroke-width="3"/>' + eye(86, 58, 5) + eye(114, 58, 5) + '<path d="M98 66 L132 72 L98 78Z" fill="#FF8A1F"/><path d="M62 94 Q100 112 138 94" stroke="#E23B3B" stroke-width="12" fill="none" stroke-linecap="round"/>' + round(100, 130, 5, 5, '#333') + round(100, 152, 5, 5, '#333'),
-  ice: '<path d="M26 182 L46 64 L108 40 L172 80 L180 182Z" fill="#A9DCF2" stroke="#7DBFE0" stroke-width="5" stroke-linejoin="round"/><path d="M62 96 L92 74M78 130 L128 92" stroke="#fff" stroke-width="9" stroke-linecap="round"/>',
+  snowballs: [[62, 146, 44, 40], [138, 146, 44, 40], [100, 86, 40, 36]].map(([x, y, rx, ry]) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" stroke="#C9DCEB" stroke-width="4"/>`).join('') + round(88, 76, 12, 9, '#EAF4FB'),
   gift2: '<rect x="30" y="74" width="140" height="110" rx="8" fill="#2F6FDE"/><rect x="88" y="74" width="24" height="110" fill="#fff"/><rect x="22" y="56" width="156" height="30" rx="6" fill="#4C86EA"/><rect x="88" y="56" width="24" height="30" fill="#fff"/>',
   cone: '<path d="M100 14 L150 164 H50Z" fill="#FF8A1F"/><path d="M80 74h40l10 32H70z" fill="#fff"/><rect x="24" y="160" width="152" height="24" rx="8" fill="#E2701A"/>',
   crate: '<rect x="28" y="40" width="144" height="144" rx="6" fill="#C99A5B"/><path d="M28 40h144v22H28zM28 162h144v22H28zM36 56 L164 168M164 56 L36 168" stroke="#8A5A33" stroke-width="12" fill="none"/>',
@@ -85,12 +85,21 @@ const swatch = (id) => {
 const ballAt = (r) => `<g transform="translate(100 100) scale(${r}) translate(-100 -100)">${ITEMS.ball}</g>`;
 
 const stars = (n) => {
-  const places = { 1: [[100, 100, 1]], 2: [[56, 100, 0.48], [144, 100, 0.48]], 3: [[100, 52, 0.46], [52, 146, 0.46], [148, 146, 0.46]] }[n];
-  return places.map(([x, y, s]) => `<g transform="translate(${x} ${y}) scale(${s}) translate(-100 -100)">${ITEMS.star}</g>`).join('');
+  // Všechny hvězdy jsou stejně velké, aby dítě vybíralo podle počtu, ne podle velikosti.
+  const places = { 1: [[100, 100]], 2: [[54, 100], [146, 100]], 3: [[100, 52], [52, 146], [148, 146]] }[n];
+  return places.map(([x, y]) => `<g transform="translate(${x} ${y}) scale(0.46) translate(-100 -100)">${ITEMS.star}</g>`).join('');
 };
 
-export function artSvg(key) {
+// Tvar má barvu podle otázky, aby si dítě nespojilo tvar s jednou barvou.
+const SHAPE_FILLS = ['#E23B3B', '#2F6FDE', '#FFD432', '#3DAA4E', '#FF8A1F', '#8E4EC6'];
+const recolor = (body, color) => body.replace(/fill="#[0-9A-Fa-f]{6}"/, `fill="${color}"`).replace(/ stroke="#E2B41C"/, ' stroke="rgba(0,0,0,.15)"');
+
+export const shapeTint = (rng = Math.random) => SHAPE_FILLS[Math.floor(rng() * SHAPE_FILLS.length)];
+
+export function artSvg(key, tint) {
   if (key.startsWith('color:')) return swatch(key.slice(6));
+  if (key.startsWith('shape:')) return svg(recolor(ITEMS[key.slice(6)], tint ?? '#2F6FDE'));
+  if (key.startsWith('car:')) return svg(ITEMS.car.replaceAll('#E23B3B', COLORS[key.slice(4)]));
   if (key === 'size:big') return svg(ballAt(1));
   if (key === 'size:small') return svg(ballAt(0.4));
   if (key.startsWith('count:')) return svg(stars(Number(key.slice(6))));

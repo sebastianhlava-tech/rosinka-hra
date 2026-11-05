@@ -1,37 +1,63 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  LEVELS, SENTENCES, newProgress, pickQuestion, recordAnswer, itemStatus, setLevel,
+  ALL_ITEMS, SENTENCES, TRACKS, itemStatus, newProgress, normalizeProgress, pickQuestion, playLevel, recordAnswer, setStage, stageOf,
 } from '../js/questions.js';
+import { artKeys, artSvg } from '../js/art.js';
 
 const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-const allItems = LEVELS.flatMap((l) => l.items);
+const master = (p, item) => { recordAnswer(p, item.id, true); recordAnswer(p, item.id, true); };
 
-test('10 levels and 55 unique questions', () => {
-  assert.equal(LEVELS.length, 10);
-  assert.equal(allItems.length, 55);
-  assert.equal(new Set(allItems.map((i) => i.id)).size, 55);
+test('6 stop, 59 otázek, každé id jednou', () => {
+  assert.equal(TRACKS.length, 6);
+  assert.equal(ALL_ITEMS.length, 59);
+  assert.equal(new Set(ALL_ITEMS.map((i) => i.id)).size, 59);
 });
 
-test('78 sentences to record, each unique', () => {
-  assert.equal(SENTENCES.length, 78);
-  assert.equal(new Set(SENTENCES.map((s) => s.id)).size, 78);
+test('staré id otázek zůstala, aby platily nahrávky', () => {
+  const ids = new Set(ALL_ITEMS.map((i) => i.id));
+  ['color-red', 'animal-rabbit', 'thing-spoon', 'shape-heart', 'size-big', 'count-3', 'sound-monkey'].forEach((id) => assert.ok(ids.has(id), id));
 });
 
-test('every question has the right answer once and no repeated choice', () => {
+test('každá věta má češtinu i angličtinu a jedinečný klíč', () => {
+  const keys = SENTENCES.map((s) => s.key);
+  assert.equal(new Set(keys).size, keys.length);
+  const cs = SENTENCES.filter((s) => s.lang === 'cs');
+  const en = SENTENCES.filter((s) => s.lang === 'en');
+  assert.equal(cs.length, 82);
+  cs.forEach((s) => assert.ok(en.some((e) => e.id === s.id && e.text), s.id));
+  assert.ok(cs.every((s) => s.key === s.id), 'česká věta má starý klíč');
+  ALL_ITEMS.forEach((i) => assert.ok(SENTENCES.some((s) => s.key === `en:word-${i.answerId ?? i.id}`), i.id));
+});
+
+test('každý obrázek otázky existuje', () => {
+  const keys = new Set(artKeys());
+  ALL_ITEMS.filter((i) => i.art).forEach((i) => {
+    const svg = artSvg(i.art, '#123456');
+    assert.ok(svg.includes('<svg') && !svg.includes('undefined'), i.art);
+    if (!i.art.includes(':')) assert.ok(keys.has(i.art), i.art);
+  });
+});
+
+test('tvar dostane barvu otázky', () => {
+  assert.ok(artSvg('shape:triangle', '#123456').includes('#123456'));
+});
+
+test('každá otázka má správnou odpověď jednou a žádnou dvakrát', () => {
   const rng = seeded(7);
   const p = newProgress();
-  for (let n = 0; n < 3000; n++) {
+  for (let n = 0; n < 4000; n++) {
     const q = pickQuestion(p, rng);
     const ids = q.choices.map((c) => c.id);
     assert.equal(new Set(ids).size, ids.length);
     assert.equal(ids.filter((id) => id === q.answerId).length, 1);
-    assert.ok(ids.length >= 2 && ids.length <= LEVELS[p.level - 1].answers);
+    assert.ok(ids.length >= 2 && ids.length <= 4);
     recordAnswer(p, q.item.id, true);
   }
+  TRACKS.forEach((t) => assert.equal(stageOf(p, t.id), t.stages.length, t.id));
 });
 
-test('the same question never comes twice in a row', () => {
+test('stejná otázka nikdy dvakrát za sebou', () => {
   const rng = seeded(11);
   const p = newProgress();
   let last = null;
@@ -43,39 +69,37 @@ test('the same question never comes twice in a row', () => {
   }
 });
 
-test('level 1 asks only its 4 colours', () => {
+test('na začátku se ptá jen na 4 barvy', () => {
   const p = newProgress();
   const rng = seeded(3);
-  const ids = LEVELS[0].items.map((i) => i.id);
+  const ids = TRACKS[0].stages[0].items.map((i) => i.id);
   for (let n = 0; n < 50; n++) assert.ok(ids.includes(pickQuestion(p, rng).item.id));
 });
 
-test('a level ends after each new item is right twice on the first try', () => {
+test('po 4 umíněných barvách se posune stopa a otevřou se zvířata', () => {
   const p = newProgress();
-  for (const item of LEVELS[0].items.slice(0, 3)) {
-    recordAnswer(p, item.id, true);
-    recordAnswer(p, item.id, true);
-  }
-  assert.equal(p.level, 1);
-  const lastItem = LEVELS[0].items[3];
-  assert.equal(recordAnswer(p, lastItem.id, true).levelUp, false);
-  assert.equal(recordAnswer(p, lastItem.id, true).levelUp, true);
-  assert.equal(p.level, 2);
+  const colors = TRACKS[0].stages[0].items;
+  colors.slice(0, 3).forEach((i) => master(p, i));
+  assert.equal(stageOf(p, 'colors'), 1);
+  assert.equal(recordAnswer(p, colors[3].id, true).levelUp, false);
+  assert.equal(recordAnswer(p, colors[3].id, true).levelUp, true);
+  assert.equal(stageOf(p, 'colors'), 2);
+  assert.equal(stageOf(p, 'animals'), 1);
 });
 
-test('a right answer after a mistake does not count as first try', () => {
+test('správně až po chybě se nepočítá jako napoprvé', () => {
   const p = newProgress();
-  const id = LEVELS[0].items[0].id;
-  recordAnswer(p, id, false);
-  recordAnswer(p, id, false);
-  assert.equal(itemStatus(p, LEVELS[0].items[0]), 'learning');
+  const item = ALL_ITEMS[0];
+  recordAnswer(p, item.id, false);
+  recordAnswer(p, item.id, false);
+  assert.equal(itemStatus(p, item), 'learning');
 });
 
-test('an item with a mistake comes back soon', () => {
+test('pojem s chybou se brzy vrátí', () => {
   const p = newProgress();
-  setLevel(p, 5);
+  setStage(p, 'animals', 2);
   const rng = seeded(21);
-  const target = LEVELS[4].items[0];
+  const target = TRACKS[1].stages[1].items[0];
   recordAnswer(p, target.id, false);
   let found = false;
   for (let n = 0; n < 4; n++) {
@@ -86,30 +110,23 @@ test('an item with a mistake comes back soon', () => {
   assert.ok(found);
 });
 
-test('on level 5, about 3 of 10 questions are new', () => {
+test('vypnutá stopa se neptá', () => {
   const p = newProgress();
-  setLevel(p, 5);
+  setStage(p, 'animals', 3);
+  setStage(p, 'colors', 0);
   const rng = seeded(5);
-  const newIds = LEVELS[4].items.map((i) => i.id);
-  let fresh = 0;
-  for (let n = 0; n < 1000; n++) {
-    if (newIds.includes(pickQuestion(p, rng).item.id)) fresh++;
+  for (let n = 0; n < 300; n++) {
+    const q = pickQuestion(p, rng);
+    assert.notEqual(q.item.track, 'colors');
+    recordAnswer(p, q.item.id, true);
   }
-  assert.ok(fresh > 200 && fresh < 400, `new: ${fresh}`);
+  assert.equal(stageOf(p, 'colors'), 1, 'vypnutá stopa se sama neotevře');
 });
 
-test('level never goes above 10 and the game keeps asking', () => {
+test('zvuky mají za odpověď zvířata', () => {
   const p = newProgress();
-  const rng = seeded(9);
-  for (const item of allItems) { recordAnswer(p, item.id, true); recordAnswer(p, item.id, true); }
-  assert.equal(p.level, 10);
-  assert.equal(itemStatus(p, allItems[0]), 'known');
-  assert.ok(pickQuestion(p, rng).choices.length >= 2);
-});
-
-test('sound questions show animals as answers', () => {
-  const p = newProgress();
-  setLevel(p, 10);
+  setStage(p, 'animals', 4);
+  setStage(p, 'colors', 0);
   const rng = seeded(13);
   let n = 0;
   while (n < 20) {
@@ -117,8 +134,37 @@ test('sound questions show animals as answers', () => {
     if (q.item.cat === 'sound') {
       n++;
       assert.ok(q.choices.every((c) => c.id.startsWith('animal-')));
-      assert.equal(q.answerId, q.item.answerId);
+      assert.equal(q.choices.length, 4);
     }
     recordAnswer(p, q.item.id, true);
   }
+});
+
+test('auta v barvách mají za odpověď jen auta', () => {
+  const p = newProgress();
+  setStage(p, 'colors', 4);
+  const rng = seeded(17);
+  let n = 0;
+  while (n < 10) {
+    const q = pickQuestion(p, rng);
+    if (q.item.cat === 'car') {
+      n++;
+      assert.ok(q.choices.every((c) => c.id.startsWith('car-')));
+    }
+    recordAnswer(p, q.item.id, true);
+  }
+});
+
+test('starý postup (úroveň 7) se převede na stopy a nic neztratí', () => {
+  const old = { level: 7, items: { 'color-red': { right: 3, wrong: 0, firstTry: 3 } }, due: [{ id: 'gone', wait: 1 }], last: null };
+  const p = normalizeProgress(old);
+  assert.deepEqual(p.stages, { colors: 3, animals: 2, things: 1, shapes: 1, opposites: 1 });
+  assert.equal(p.items['color-red'].firstTry, 3);
+  assert.deepEqual(p.due, []);
+  assert.equal(p.level, undefined);
+  assert.equal(playLevel(p), 8);
+});
+
+test('nový hráč má úroveň světa 1', () => {
+  assert.equal(playLevel(normalizeProgress(undefined)), 1);
 });

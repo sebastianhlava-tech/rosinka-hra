@@ -1,16 +1,18 @@
 // Nahrávání věta po větě: ukáže chybějící věty a po každé větu přehraje.
-import { SENTENCES } from './questions.js';
+import { SENTENCES, stageOf } from './questions.js';
 import { hasClip, say, startRecording, stopVoice } from './voice.js';
 
 const NAMES = { mom: 'Maminka', dad: 'Tatínek' };
 
-function missing(kind, level) {
-  const rank = (s) => (s.level === 0 ? 0 : s.level === level ? 1 : 2 + s.level);
-  return SENTENCES.filter((s) => !hasClip(kind, s.id)).sort((a, b) => rank(a) - rank(b));
+// Nejdřív společné věty, pak to, co se dítě právě učí, nakonec zbytek.
+function missing(kind, lang, progress) {
+  const rank = (s) => (s.group === 'common' ? 0 : s.stage <= stageOf(progress, s.group) ? s.stage : 10 + s.stage);
+  return SENTENCES.filter((s) => s.lang === lang && !hasClip(kind, s.key)).sort((a, b) => rank(a) - rank(b));
 }
 
-export function openRecorder(root, kind, level, onClose) {
-  const queue = missing(kind, level);
+export function openRecorder(root, kind, lang, progress, onClose) {
+  const total = SENTENCES.filter((s) => s.lang === lang).length;
+  const queue = missing(kind, lang, progress);
   let at = 0;
   let stop = null;
   let message = '';
@@ -22,12 +24,12 @@ export function openRecorder(root, kind, level, onClose) {
   };
 
   const frame = (body) => {
-    const done = SENTENCES.length - queue.length + at;
+    const done = total - queue.length + at;
     root.innerHTML = `
       <div class="recorder-box">
-        <header><b>Nahrává: ${NAMES[kind]}</b><button class="close">Zavřít</button></header>
-        <div class="recorder-bar"><i style="width:${(done / SENTENCES.length) * 100}%"></i></div>
-        <div>Hotovo ${done} z ${SENTENCES.length}</div>
+        <header><b>Nahrává: ${NAMES[kind]}${lang === 'en' ? ' (anglicky)' : ''}</b><button class="close">Zavřít</button></header>
+        <div class="recorder-bar"><i style="width:${(done / total) * 100}%"></i></div>
+        <div>Hotovo ${done} z ${total}</div>
         ${body}
       </div>`;
     root.querySelector('.close').onclick = leave;
@@ -45,8 +47,8 @@ export function openRecorder(root, kind, level, onClose) {
       </div>`);
     root.querySelector('.good').onclick = next;
     root.querySelector('.again').onclick = ask;
-    root.querySelector('.listen').onclick = () => say(s.id, kind);
-    say(s.id, kind);
+    root.querySelector('.listen').onclick = () => say(s.id, kind, s.lang);
+    say(s.id, kind, s.lang);
   }
 
   function ask() {
@@ -74,7 +76,7 @@ export function openRecorder(root, kind, level, onClose) {
       }
       try {
         stopVoice();
-        stop = await startRecording(kind, s.id);
+        stop = await startRecording(kind, s.key);
         main.textContent = 'Stop';
         main.classList.add('recording');
       } catch {

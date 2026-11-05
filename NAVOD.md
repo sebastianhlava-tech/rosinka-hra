@@ -16,7 +16,11 @@ Vytvoř postavičku Rosinky, potom maminku a tatínka. Zelené tlačítko potvrd
 Na úvodní obrazovce ťukni vlevo nahoře na Pro rodiče a vyřeš příklad.
 Během hry podrž prst 3 sekundy v pravém horním rohu.
 
-Tady je Začít znovu, změna postav, délka hry, obtížnost, úroveň učení, průvodce, zvuky a přehled, co už dcera umí.
+Tady je Začít znovu, změna postav, délka hry, obtížnost, jazyk, průvodce, zvuky a přehled, co už dcera umí.
+
+Učení má stopy: Barvy, Zvířata, Věci, Tvary, Velký a malý, Počítání. Každá stopa se posouvá sama. V části Co už umí můžeš stopu posunout nebo vypnout.
+
+Jazyk: Čeština, English, nebo Čeština + anglická slovíčka (otázka česky, po správné odpovědi zazní slovo anglicky).
 
 Po „Dobrou noc“ se hra zamkne. Odemkne ji tlačítko Začít znovu.
 U Dobrou noc po zvol Bez konce, když hra nemá končit.
@@ -30,7 +34,7 @@ Vypni Po Dobrou noc zamknout, když hra nemá zůstat zamčená.
 4. Hra větu přehraje. Ťukni na Dobré, další, nebo na Znovu.
 
 Hra ukáže jen věty, které chybí. Můžeš kdykoli skončit a později pokračovat.
-Každý má svoje věty. Celkem je 78 vět na osobu.
+Každý má svoje věty. Česky je 82 vět na osobu, anglicky 131. Jazyk vět vybereš v poli Věty. Co chybí, řekne hlas tabletu.
 Když věta chybí, hraje nahrávka druhého rodiče, potom hlas tabletu.
 Nahrávky jsou jen v tomto iPadu a nemají zálohu. Když smažeš ikonu hry, nahrávky zmizí.
 

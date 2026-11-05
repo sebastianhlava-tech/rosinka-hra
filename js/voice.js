@@ -1,21 +1,28 @@
 // Každá věta má dvě nahrávky: maminky a tatínka. Mluví ten, kdo je průvodce.
 // Když jeho věta chybí, hraje nahrávka druhého rodiče a potom hlas tabletu.
-import { SENTENCES } from './questions.js';
+// Věta je česky, nebo anglicky. Česká nahrávka má klíč jako dřív, takže staré nahrávky platí.
+import { SENTENCES, sentenceKey } from './questions.js';
 import { deleteClip, loadClips, saveClip } from './storage.js';
 
-const textOf = new Map(SENTENCES.map((s) => [s.id, s.text]));
+const textOf = new Map(SENTENCES.map((s) => [s.key, s.text]));
 const urls = new Map();
 const audio = new Audio();
 let finishCurrent = null;
 let audioCtx = null;
 let speaker = 'mom';
 let chimes = true;
+let voiceLang = 'cs';
 
 const clipKey = (kind, id) => `${kind}:${id}`;
 const otherOf = (kind) => (kind === 'mom' ? 'dad' : 'mom');
 
 export function setChimes(on) {
   chimes = on;
+}
+
+// Jazyk otázek: 'en' = anglicky, jinak česky.
+export function setLang(lang) {
+  voiceLang = lang === 'en' ? 'en' : 'cs';
 }
 
 export function setSpeaker(kind) {
@@ -50,20 +57,21 @@ export function stopVoice() {
   finishCurrent?.();
 }
 
-function speakFallback(text, done) {
+function speakFallback(text, lang, done) {
   if (!window.speechSynthesis) return done();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'cs-CZ';
+  u.lang = lang === 'en' ? 'en-US' : 'cs-CZ';
   u.rate = 0.85;
-  const czech = speechSynthesis.getVoices().find((v) => v.lang.startsWith('cs'));
-  if (czech) u.voice = czech;
+  const voice = speechSynthesis.getVoices().find((v) => v.lang.startsWith(lang));
+  if (voice) u.voice = voice;
   u.onend = done;
   u.onerror = done;
   speechSynthesis.speak(u);
 }
 
 // Vrací Promise, která skončí s koncem věty. Pojistka hru nezasekne, když zvuk selže.
-export function say(id, kind = speaker) {
+export function say(id, kind = speaker, lang = voiceLang) {
+  const key = sentenceKey(id, lang);
   stopVoice();
   return new Promise((resolve) => {
     const guard = setTimeout(() => finishCurrent?.(), 6000);
@@ -73,14 +81,14 @@ export function say(id, kind = speaker) {
       resolve();
     };
     const done = () => finishCurrent?.();
-    const url = urls.get(clipKey(kind, id)) ?? urls.get(clipKey(otherOf(kind), id));
+    const url = urls.get(clipKey(kind, key)) ?? urls.get(clipKey(otherOf(kind), key));
     if (url) {
       audio.src = url;
       audio.onended = done;
       audio.onerror = done;
       audio.play().catch(done);
     } else {
-      speakFallback(textOf.get(id) ?? '', done);
+      speakFallback(textOf.get(key) ?? '', lang, done);
     }
   });
 }
@@ -100,8 +108,9 @@ export function chime(freq = 660) {
 
 export const hasClip = (kind, id) => urls.has(clipKey(kind, id));
 
-export async function removeClip(kind, id) {
-  const key = clipKey(kind, id);
+// Nahrávání a mazání pracuje s klíčem věty (s.key), ne s id.
+export async function removeClip(kind, sentence) {
+  const key = clipKey(kind, sentence);
   await deleteClip(key);
   URL.revokeObjectURL(urls.get(key));
   urls.delete(key);
@@ -109,8 +118,8 @@ export async function removeClip(kind, id) {
 
 const pickMime = () => ['audio/mp4', 'audio/webm'].find((t) => window.MediaRecorder?.isTypeSupported(t)) ?? '';
 
-export async function startRecording(kind, id) {
-  const key = clipKey(kind, id);
+export async function startRecording(kind, sentence) {
+  const key = clipKey(kind, sentence);
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   const mimeType = pickMime();
   const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);

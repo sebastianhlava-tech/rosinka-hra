@@ -1,10 +1,12 @@
 // Rodičovská část: vstup, nastavení, přehled učení, nahrávání hlasu.
-import { LEVELS, SENTENCES, itemStatus, newProgress, setLevel } from './questions.js';
+import { SENTENCES, TRACKS, isOff, itemStatus, newProgress, setStage, stageOf } from './questions.js';
 import { DIFFICULTIES } from './biomes.js';
 import { openRecorder } from './recorder.js';
 import { hasClip, removeClip, say, startRecording, stopVoice } from './voice.js';
 
 const HOLD_MS = 3000;
+const LANGS = [['cs', 'Čeština'], ['both', 'Čeština + anglická slovíčka'], ['en', 'English']];
+let recLang = 'cs';
 
 export function bindCornerHold(corner, onOpen) {
   let timer = null;
@@ -34,15 +36,22 @@ function gate(root, onPass, onClose) {
   };
 }
 
+function stageSelect(p, t) {
+  const now = isOff(p, t.id) ? 0 : stageOf(p, t.id);
+  const closed = now === 0 && !isOff(p, t.id) ? '<option value="-1" selected>Otevře se samo</option>' : '';
+  const steps = t.stages.map((_, i) => `<option value="${i + 1}" ${i + 1 === now ? 'selected' : ''}>Stupeň ${i + 1} z ${t.stages.length}</option>`).join('');
+  return `<select data-track="${t.id}">${closed}<option value="0" ${isOff(p, t.id) ? 'selected' : ''}>Vypnuto</option>${steps}</select>`;
+}
+
 function learningHtml(progress) {
   const labels = { known: 'umí', learning: 'učí se', new: 'ještě ne' };
-  return LEVELS.map((level, i) => {
-    const cells = level.items.map((item) => {
+  return TRACKS.map((t) => {
+    const cells = t.stages.flatMap((st) => st.items).map((item) => {
       const status = itemStatus(progress, item);
       const word = item.text.replace(/^(Kde je|Kde jsou|Kdo dělá) /, '').replace('?', '');
       return `<span class="tag ${status}" title="${labels[status]}">${word}</span>`;
     }).join('');
-    return `<p><b>Úroveň ${i + 1}:</b> ${cells}</p>`;
+    return `<p><b>${t.label}</b> ${stageSelect(progress, t)}<br>${cells}</p>`;
   }).join('');
 }
 
@@ -51,11 +60,11 @@ function voiceRow(s, kind) {
   row.className = 'voice-row';
   const draw = () => {
     row.innerHTML = `
-      <span class="voice-mark">${hasClip(kind, s.id) ? '✓' : '○'}</span>
+      <span class="voice-mark">${hasClip(kind, s.key) ? '✓' : '○'}</span>
       <span class="voice-text">${s.text}</span>
       <button class="rec">Nahrát</button>
-      <button class="play" ${hasClip(kind, s.id) ? '' : 'disabled'}>Přehrát</button>
-      <button class="del" ${hasClip(kind, s.id) ? '' : 'disabled'}>Smazat</button>`;
+      <button class="play" ${hasClip(kind, s.key) ? '' : 'disabled'}>Přehrát</button>
+      <button class="del" ${hasClip(kind, s.key) ? '' : 'disabled'}>Smazat</button>`;
     let stop = null;
     const rec = row.querySelector('.rec');
     rec.onclick = async () => {
@@ -67,29 +76,30 @@ function voiceRow(s, kind) {
       }
       try {
         stopVoice();
-        stop = await startRecording(kind, s.id);
+        stop = await startRecording(kind, s.key);
         rec.textContent = 'Stop';
         rec.classList.add('recording');
       } catch {
         rec.textContent = 'Mikrofon nejde';
       }
     };
-    row.querySelector('.play').onclick = () => say(s.id, kind);
-    row.querySelector('.del').onclick = async () => { await removeClip(kind, s.id); draw(); };
+    row.querySelector('.play').onclick = () => say(s.id, kind, s.lang);
+    row.querySelector('.del').onclick = async () => { await removeClip(kind, s.key); draw(); };
   };
   draw();
   return row;
 }
 
-function voiceSection(root, level, kind) {
+function voiceSection(root, progress, kind) {
   const host = root.querySelector('.voice-list');
   host.innerHTML = '';
-  const groups = [{ label: 'Společné věty', level: 0 }, ...LEVELS.map((_, i) => ({ label: `Úroveň ${i + 1}`, level: i + 1 }))];
+  const groups = [{ label: 'Společné věty', id: 'common' }, ...TRACKS.map((t) => ({ label: t.label, id: t.id }))];
   for (const g of groups) {
     const box = document.createElement('details');
-    box.open = g.level === 0 || g.level === level;
+    box.open = g.id === 'common';
     box.innerHTML = `<summary>${g.label}</summary>`;
-    SENTENCES.filter((s) => s.level === g.level).forEach((s) => box.append(voiceRow(s, kind)));
+    SENTENCES.filter((s) => s.group === g.id && s.lang === recLang && (g.id === 'common' || stageOf(progress, g.id) >= s.stage))
+      .forEach((s) => box.append(voiceRow(s, kind)));
     host.append(box);
   }
 }
@@ -97,12 +107,13 @@ function voiceSection(root, level, kind) {
 function panel(root, state, api) {
   const minutes = [[3, '3 minuty'], [5, '5 minut'], [10, '10 minut'], [20, '20 minut'], [0, 'Bez konce']]
     .map(([m, label]) => `<option value="${m}" ${m === state.minutes ? 'selected' : ''}>${label}</option>`).join('');
-  const levels = LEVELS.map((_, i) => `<option value="${i + 1}" ${i + 1 === state.progress.level ? 'selected' : ''}>${i + 1}</option>`).join('');
+  const langs = LANGS.map(([v, label]) => `<option value="${v}" ${v === state.lang ? 'selected' : ''}>${label}</option>`).join('');
   const guides = [['both', 'Střídají se'], ['mom', 'Maminka'], ['dad', 'Tatínek']]
     .map(([v, label]) => `<option value="${v}" ${v === state.guide ? 'selected' : ''}>${label}</option>`).join('');
   const segments = Object.entries(DIFFICULTIES)
     .map(([v, d]) => `<button data-difficulty="${v}" class="${v === state.difficulty ? 'on' : ''}">${d.label}</button>`).join('');
-  const recorded = (kind) => SENTENCES.filter((s) => hasClip(kind, s.id)).length;
+  const mine = SENTENCES.filter((s) => s.lang === recLang);
+  const recorded = (kind) => mine.filter((s) => hasClip(kind, s.key)).length;
   root.innerHTML = `
     <div class="parent-panel">
       <header><h2>Pro rodiče</h2><button class="close">Zavřít</button></header>
@@ -115,7 +126,7 @@ function panel(root, state, api) {
       <section class="settings">
         <label>Dobrou noc po <select class="minutes">${minutes}</select></label>
         <label>Obtížnost <span class="segments">${segments}</span></label>
-        <label>Úroveň učení <select class="level">${levels}</select></label>
+        <label>Jazyk <select class="lang">${langs}</select></label>
         <label>Průvodce <select class="guide">${guides}</select></label>
         <label><input type="checkbox" class="lock-night" ${state.lockNight ? 'checked' : ''}> Po Dobrou noc zamknout</label>
         <label><input type="checkbox" class="sounds" ${state.sounds ? 'checked' : ''}> Zvuky hry</label>
@@ -123,16 +134,17 @@ function panel(root, state, api) {
       </section>
       <section><h3>Nahrát hlas</h3>
         <p>Ťukni na svoje jméno. Hra ti ukáže větu po větě. Stačí říct větu a ťuknout na Stop.</p>
+        <label>Věty <select class="rec-lang"><option value="cs" ${recLang === 'cs' ? 'selected' : ''}>česky</option><option value="en" ${recLang === 'en' ? 'selected' : ''}>anglicky</option></select></label>
         <div class="voice-cards">
-          <button class="record-mom">Nahrává maminka<small>Hotovo ${recorded('mom')} z ${SENTENCES.length}</small></button>
-          <button class="record-dad">Nahrává tatínek<small>Hotovo ${recorded('dad')} z ${SENTENCES.length}</small></button>
+          <button class="record-mom">Nahrává maminka<small>Hotovo ${recorded('mom')} z ${mine.length}</small></button>
+          <button class="record-dad">Nahrává tatínek<small>Hotovo ${recorded('dad')} z ${mine.length}</small></button>
         </div>
         <details class="voice-all"><summary>Všechny věty</summary>
           <label>Nahrává <select class="recorder"><option value="mom">Maminka</option><option value="dad">Tatínek</option></select></label>
           <div class="voice-list"></div>
         </details>
       </section>
-      <section><h3>Co už umí</h3><div class="learning">${learningHtml(state.progress)}</div></section>
+      <section><h3>Co už umí</h3><p>Stopa se posune sama. Tady ji můžeš posunout, nebo vypnout.</p><div class="learning">${learningHtml(state.progress)}</div></section>
     </div>`;
 
   const $ = (s) => root.querySelector(s);
@@ -143,11 +155,16 @@ function panel(root, state, api) {
   $('.sounds').onchange = (e) => { state.sounds = e.target.checked; api.save(); };
   $('.guide').onchange = (e) => { state.guide = e.target.value; api.save(); };
   $('.minutes').onchange = (e) => { state.minutes = Number(e.target.value); api.save(); };
-  $('.level').onchange = (e) => {
-    setLevel(state.progress, Number(e.target.value));
+  $('.lang').onchange = (e) => { state.lang = e.target.value; api.save(); };
+  $('.learning').onchange = (e) => {
+    const track = e.target.dataset.track;
+    const value = Number(e.target.value);
+    if (!track || value < 0) return;
+    setStage(state.progress, track, value);
     api.save();
     $('.learning').innerHTML = learningHtml(state.progress);
   };
+  $('.rec-lang').onchange = (e) => { recLang = e.target.value; panel(root, state, api); };
   root.querySelectorAll('[data-difficulty]').forEach((b) => {
     b.onclick = (e) => {
       e.preventDefault();
@@ -157,7 +174,7 @@ function panel(root, state, api) {
     };
   });
   ['mom', 'dad'].forEach((kind) => {
-    $(`.record-${kind}`).onclick = () => openRecorder(root, kind, state.progress.level, () => panel(root, state, api));
+    $(`.record-${kind}`).onclick = () => openRecorder(root, kind, recLang, state.progress, () => panel(root, state, api));
   });
   $('.reset').onclick = () => {
     if (!confirm('Opravdu smazat postup v učení? Nahrávky hlasu zůstanou.')) return;
@@ -165,11 +182,12 @@ function panel(root, state, api) {
     api.save();
     panel(root, state, api);
   };
-  $('.recorder').onchange = (e) => voiceSection(root, state.progress.level, e.target.value);
-  voiceSection(root, state.progress.level, 'mom');
+  $('.recorder').onchange = (e) => voiceSection(root, state.progress, e.target.value);
+  voiceSection(root, state.progress, 'mom');
 }
 
 export function openParent(root, state, api) {
+  recLang = state.lang === 'en' ? 'en' : 'cs';
   root.hidden = false;
   gate(root, () => panel(root, state, api), api.close);
 }

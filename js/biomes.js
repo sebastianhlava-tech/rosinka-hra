@@ -8,7 +8,7 @@ export const BIOMES = [
   { id: 'beach', sky: ['#7FD3F2', '#D8F4F7'], sun: '#FFD95A', hill: '#58BFE0', ground: '#F4DDA0', dots: ['#FFFFFF', '#F7C77C', '#FF8FC0'], decor: 'palm', decorStep: 700, decorH: 320,
     obstacles: [{ art: 'crab', w: 104, h: 70 }, { art: 'sandcastle', w: 110, h: 94 }, { art: 'shell', w: 90, h: 70 }] },
   { id: 'snow', sky: ['#C7DCF2', '#F2F8FC'], sun: '#FFFFFF', hill: '#E6F0F8', ground: '#FAFDFF', dots: ['#CFE2F2', '#BCD6EC', '#E6F0F8'], decor: 'snowpine', decorStep: 330, decorH: 320, snow: true,
-    obstacles: [{ art: 'snowman', w: 96, h: 104 }, { art: 'ice', w: 104, h: 74 }, { art: 'gift2', w: 90, h: 80 }] },
+    obstacles: [{ art: 'snowman', w: 96, h: 104 }, { art: 'snowballs', w: 104, h: 84 }, { art: 'gift2', w: 90, h: 80 }] },
   { id: 'city', sky: ['#FFD2B8', '#FFF1DE'], sun: '#FFB25A', hill: '#D6C7D8', ground: '#B9BEC6', dots: ['#FFFFFF', '#D5D9DE', '#FFD432'], decor: 'building', decorStep: 300, decorH: 420,
     obstacles: [{ art: 'cone', w: 84, h: 86 }, { art: 'crate', w: 96, h: 84 }, { art: 'hydrant', w: 76, h: 90 }] },
   { id: 'dusk', sky: ['#24325E', '#5A5FA0'], sun: '#F8E27C', hill: '#39477E', ground: '#3F6B5A', dots: ['#FFD432', '#BFE5A3', '#FFFFFF'], decor: 'pine', decorStep: 420, decorH: 300, stars: true,

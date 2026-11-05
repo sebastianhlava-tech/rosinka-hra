@@ -1,5 +1,5 @@
 // Nastavení je v localStorage. Nahrávky hlasu jsou v IndexedDB. Nic neopouští tablet.
-import { newProgress } from './questions.js';
+import { newProgress, normalizeProgress } from './questions.js';
 import { DEFAULT_CHARACTERS } from './character.js';
 
 const KEY = 'rosinka-v1';
@@ -11,6 +11,7 @@ const defaults = () => ({
   difficulty: 'easy',
   lockNight: true,
   sounds: true,
+  lang: 'cs',
   locked: false,
   progress: newProgress(),
 });
@@ -18,7 +19,7 @@ const defaults = () => ({
 export function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY));
-    return { ...defaults(), ...saved };
+    return { ...defaults(), ...saved, progress: normalizeProgress(saved?.progress) };
   } catch {
     return defaults();
   }

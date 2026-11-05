@@ -1,12 +1,12 @@
 // Start hry a přepínání obrazovek.
-import { artSvg, svgToDataUrl } from './art.js';
+import { artSvg, shapeTint, svgToDataUrl } from './art.js';
 import { DIFFICULTIES, MAX_FRIENDS, nextUpgrade } from './biomes.js';
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
-import { pickQuestion, recordAnswer } from './questions.js';
+import { pickQuestion, playLevel, recordAnswer } from './questions.js';
 import { characterOf, loadState, saveState } from './storage.js';
-import { chime, initVoice, say, setChimes, setSpeaker, stopVoice, unlockAudio } from './voice.js';
+import { chime, initVoice, say, setChimes, setLang, setSpeaker, stopVoice, unlockAudio } from './voice.js';
 import { World } from './world.js';
 
 const NOTES = [523, 587, 659, 784, 880];
@@ -111,18 +111,19 @@ async function play() {
   setSpeaker(state.guide === 'dad' ? 'dad' : 'mom');
   await world.load(markup('child'));
   show('game');
-  world.start(state.minutes, state.progress.level, DIFFICULTIES[state.difficulty]);
+  world.start(state.minutes, playLevel(state.progress), DIFFICULTIES[state.difficulty]);
 }
 
 function renderChoices(q, onPick) {
   const host = $('choices');
   host.innerHTML = '';
   host.dataset.count = q.choices.length;
+  const tint = shapeTint();
   q.choices.forEach((choice) => {
     const b = document.createElement('button');
     b.className = 'choice';
     b.dataset.right = choice.id === q.answerId;
-    b.innerHTML = artSvg(choice.art);
+    b.innerHTML = artSvg(choice.art, tint);
     b.addEventListener('click', () => onPick(b));
     host.append(b);
   });
@@ -139,12 +140,14 @@ function askQuestion() {
   const finish = async () => {
     finished = true;
     recordAnswer(state.progress, q.item.id, wrong === 0);
-    world.setLevel(state.progress.level);
+    world.setLevel(playLevel(state.progress));
     save();
     document.querySelectorAll('.choice').forEach((b) => { b.disabled = true; });
     rightButton().classList.add('glow');
     chime(880);
     await say(`praise-${1 + Math.floor(Math.random() * 3)}`);
+    // V režimu Obojí po české pochvale zazní anglické slovo.
+    if (state.lang === 'both' && q.answerId) await say(`word-${q.answerId}`, undefined, 'en');
     $('question').hidden = true;
     giveUpgrade(q);
   };
@@ -194,7 +197,7 @@ function openParentPanel() {
     world.paused = false;
   };
   openParent(root, state, {
-    save: () => { setChimes(state.sounds); save(); },
+    save: () => { setChimes(state.sounds); setLang(state.lang); save(); },
     close,
     newGame: () => {
       close();
@@ -216,6 +219,7 @@ function openParentPanel() {
 }
 
 setChimes(state.sounds);
+setLang(state.lang);
 $('night').addEventListener('click', () => { if (!state.locked) showStart(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('game').hidden) keepAwake(); });
 $('play').addEventListener('click', play);
