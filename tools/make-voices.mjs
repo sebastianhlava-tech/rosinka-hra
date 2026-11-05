@@ -79,15 +79,22 @@ async function askKey() {
 if (args.includes('--key')) {
   const key = await askKey();
   if (!key) process.exit(1);
-  const res = await fetch('https://api.elevenlabs.io/v1/user/subscription', { headers: { 'xi-api-key': key } });
-  if (!res.ok) {
-    console.log(`Klíč je uložený, ale ElevenLabs ho odmítl (${res.status}). Zkontroluj klíč a jeho práva.`);
+  const get = (path) => fetch(`https://api.elevenlabs.io${path}`, { headers: { 'xi-api-key': key } });
+  const voicesRes = await get('/v1/voices');
+  if (!voicesRes.ok) {
+    console.log(`Klíč je uložený, ale ElevenLabs ho odmítl (${voicesRes.status}).`);
+    console.log((await voicesRes.json().catch(() => ({}))).detail?.message ?? 'Zkontroluj klíč.');
     process.exit(1);
   }
-  const sub = await res.json();
   console.log('Klíč je uložený v Klíčence a funguje.');
-  console.log(`Tarif: ${sub.tier}. Znaky tento měsíc: ${sub.character_count} z ${sub.character_limit}.`);
-  console.log(sub.can_use_instant_voice_cloning ? 'Klon hlasu: ano.' : 'Klon hlasu: ne. Potřebuješ tarif Starter.');
+  const res = await get('/v1/user/subscription');
+  if (res.ok) {
+    const sub = await res.json();
+    console.log(`Tarif: ${sub.tier}. Znaky tento měsíc: ${sub.character_count} z ${sub.character_limit}.`);
+    console.log(sub.can_use_instant_voice_cloning ? 'Klon hlasu: ano.' : 'Klon hlasu: ne. Potřebuješ tarif Starter.');
+  } else {
+    console.log('Tarif nevidím, protože klíč nemá právo User (čtení). Pro hlasy to není nutné.');
+  }
   process.exit(0);
 }
 

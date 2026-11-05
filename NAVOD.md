@@ -46,7 +46,7 @@ Hlasy jsou jen v iPadu a v Macu ve složce `voices/`. Na GitHub nikdy nejdou.
 
 1. Na iPadu: Pro rodiče, Stáhnout nahrávky maminky (a tatínka). Pošli ZIP přes AirDrop do Macu. ZIP nech ve Stažených a nerozbaluj ho.
 2. Na elevenlabs.io: založ účet a zaplať tarif Starter (klonování hlasu je jen v placeném tarifu).
-3. V profilu vytvoř API klíč. Klíč musí mít právo Text to Speech, Voices a User (čtení). Ulož ho do Macu:
+3. V profilu vytvoř API klíč. Klíč musí mít právo Text to Speech a Voices (čtení i zápis). Právo User (čtení) je volitelné, ukáže tarif. Ulož ho do Macu:
 
 ```bash
 cd "/Users/sebastianhlava/Rosinka Hra" && node tools/make-voices.mjs --key
