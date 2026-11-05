@@ -17,6 +17,7 @@
 // Do iPadu jde jen soubor voices/rosinka-hlasy.zip (AirDrop nebo iCloud, potom Načíst hlasy).
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { SENTENCES, parseVoiceFile, voiceFileName } from '../js/questions.js';
@@ -56,6 +57,38 @@ function askHidden(question) {
 }
 
 const env = process.env;
+
+// API klíč je jen v Klíčence na Macu (Keychain), nikdy v souborech hry.
+const KEYCHAIN = ['-s', 'rosinka-elevenlabs', '-a', 'elevenlabs'];
+function keychainKey() {
+  try {
+    return execFileSync('security', ['find-generic-password', ...KEYCHAIN, '-w'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
+  }
+}
+async function askKey() {
+  const key = await askHidden('Vlož API klíč z ElevenLabs a stiskni Enter (při psaní není vidět): ');
+  if (key) execFileSync('security', ['add-generic-password', '-U', ...KEYCHAIN, '-w', key]);
+  return key;
+}
+
+// --key: uloží klíč do Klíčenky a ukáže tarif. Nic nevytváří.
+if (args.includes('--key')) {
+  const key = await askKey();
+  if (!key) process.exit(1);
+  const res = await fetch('https://api.elevenlabs.io/v1/user/subscription', { headers: { 'xi-api-key': key } });
+  if (!res.ok) {
+    console.log(`Klíč je uložený, ale ElevenLabs ho odmítl (${res.status}). Zkontroluj klíč a jeho práva.`);
+    process.exit(1);
+  }
+  const sub = await res.json();
+  console.log('Klíč je uložený v Klíčence a funguje.');
+  console.log(`Tarif: ${sub.tier}. Znaky tento měsíc: ${sub.character_count} z ${sub.character_limit}.`);
+  console.log(sub.can_use_instant_voice_cloning ? 'Klon hlasu: ano.' : 'Klon hlasu: ne. Potřebuješ tarif Starter.');
+  process.exit(0);
+}
+
 const IDS = join(OUT, 'voice-ids.json');
 const DOWNLOADS = join(homedir(), 'Downloads');
 const OWN_ZIPS = { mom: 'rosinka-maminka-nahravky.zip', dad: 'rosinka-tatinek-nahravky.zip' };
@@ -133,9 +166,8 @@ if (!go) {
   console.log('Nic jsem nevytvořil. Pro vytvoření přidej --go.');
   process.exit(0);
 }
-if (!env.ELEVENLABS_API_KEY && process.stdin.isTTY) {
-  env.ELEVENLABS_API_KEY = await askHidden('API klíč z ElevenLabs (při psaní není vidět): ');
-}
+env.ELEVENLABS_API_KEY ||= keychainKey();
+if (!env.ELEVENLABS_API_KEY && process.stdin.isTTY) env.ELEVENLABS_API_KEY = await askKey();
 if (!env.ELEVENLABS_API_KEY) {
   console.log('Chybí ELEVENLABS_API_KEY.');
   process.exit(1);
