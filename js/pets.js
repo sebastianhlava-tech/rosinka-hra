@@ -9,12 +9,15 @@ const flowerAt = (x, y, r, fill) => [0, 1, 2, 3, 4]
 
 // Každý druh: výchozí barva, bříško, co je za hlavou (uši) a co je na obličeji (čumák).
 const SPECIES = [
-  { id: 'dog', cs: 'pejsek', c: '#C68A52', belly: '#EFD3B0',
-    back: (c) => round(52, 96, 17, 32, '#7A4B28') + round(148, 96, 17, 32, '#7A4B28'),
-    face: () => round(100, 104, 20, 14, '#EFD3B0') + round(100, 98, 9, 7, '#2b2b2b') },
+  { id: 'dog', cs: 'pejsek', c: '#F2DDB8', belly: '#FFFFFF',
+    tail: (c) => line('M148 160 q34 -10 30 -50', '#7A4B28', 12),
+    back: () => '',
+    face: () => '<ellipse cx="50" cy="100" rx="16" ry="38" fill="#7A4B28" transform="rotate(14 50 100)"/><ellipse cx="150" cy="100" rx="16" ry="38" fill="#7A4B28" transform="rotate(-14 150 100)"/>'
+      + round(122, 76, 16, 14, '#C68A52') + round(100, 108, 24, 16, '#FFFFFF') + '<ellipse cx="100" cy="126" rx="8" ry="10" fill="#F28BA8"/>' + round(100, 100, 11, 8, '#2b2b2b') },
   { id: 'cat', cs: 'kočička', c: '#F0A23C', belly: '#FFE6C2',
-    back: (c) => `<path d="M56 74 L60 28 L94 54Z M144 74 L140 28 L106 54Z" fill="${c}"/><path d="M64 60 L66 40 L82 54Z M136 60 L134 40 L118 54Z" fill="#F6B8C6"/>`,
-    face: () => '<path d="M93 100h14l-7 8z" fill="#E86A8A"/>' + line('M48 102h26M48 112h26M152 102h-26M152 112h-26', '#6b4a1e', 3) },
+    tail: (c) => line('M146 168 q46 -6 34 -64 q-4 -14 -14 -10', c, 13),
+    back: (c) => `<path d="M52 78 L56 22 L96 54Z M148 78 L144 22 L104 54Z" fill="${c}"/><path d="M62 62 L64 36 L84 54Z M138 62 L136 36 L116 54Z" fill="#F6B8C6"/>`,
+    face: () => line('M88 46v12M100 44v14M112 46v12', '#C76F1A', 5) + '<path d="M93 100h14l-7 8z" fill="#E86A8A"/>' + line('M36 98l38 6M36 114l38 -2M164 98l-38 6M164 114l-38 -2', '#6b4a1e', 3) },
   { id: 'rabbit', cs: 'zajíček', c: '#CDB8A4', belly: '#F2E8DC',
     back: (c) => `<rect x="62" y="0" width="28" height="80" rx="14" fill="${c}"/><rect x="110" y="0" width="28" height="80" rx="14" fill="${c}"/><rect x="70" y="12" width="12" height="56" rx="6" fill="#F6B8C6"/><rect x="118" y="12" width="12" height="56" rx="6" fill="#F6B8C6"/>`,
     face: () => '<path d="M94 100h12l-6 7z" fill="#E86A8A"/><rect x="92" y="110" width="7" height="10" fill="#fff" stroke="#bbb"/><rect x="101" y="110" width="7" height="10" fill="#fff" stroke="#bbb"/>' },
@@ -99,7 +102,7 @@ export function petSvg(pet) {
     + round(70, 188, 18, 10, c) + round(130, 188, 18, 10, c);
   const head = `<ellipse cx="100" cy="86" rx="50" ry="46" fill="${c}"${outline}/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">${
-    BACK[pet.back]?.m ?? ''}${body}${NECK[pet.neck]?.m ?? ''}${sp.back(c)}${head}${sp.face()}${(EYES[pet.eyes] ?? EYES[0])()}${HEAD[pet.head]?.m ?? ''}</svg>`;
+    BACK[pet.back]?.m ?? ''}${sp.tail?.(c) ?? ''}${body}${NECK[pet.neck]?.m ?? ''}${sp.back(c)}${head}${sp.face()}${(EYES[pet.eyes] ?? EYES[0])()}${HEAD[pet.head]?.m ?? ''}</svg>`;
 }
 
 // Obrázek jedné volby pro okno tvorby.

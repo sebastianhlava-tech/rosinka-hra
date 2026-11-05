@@ -57,7 +57,7 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 #ear img { width: 70%; height: 70%; }
 #guide { position: absolute; left: 3vw; bottom: 3vh; height: 62vh; animation: sway 3s ease-in-out infinite; transform-origin: bottom center; }
 #choices { display: flex; gap: 3vw; align-items: center; justify-content: center; width: 100%; padding-left: 24vw; padding-right: 3vw; }
-.choice { background: #fff; border-radius: 34px; padding: 2.5vh; box-shadow: 0 4px 12px rgba(0,0,0,.14); flex: none; }
+.choice { background: #E9EDF1; border-radius: 34px; padding: 2.5vh; box-shadow: 0 4px 12px rgba(0,0,0,.14); flex: none; }
 .choice svg { display: block; width: 100%; height: 100%; }
 #choices[data-count="2"] .choice { width: min(46vh, 31vw); height: min(46vh, 31vw); }
 #choices[data-count="3"] .choice { width: min(40vh, 21vw); height: min(40vh, 21vw); }
@@ -72,7 +72,7 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 .shop-seller { position: absolute; left: 3vw; bottom: 4vh; width: min(40vh, 26vw); height: min(40vh, 26vw); animation: sway 3s ease-in-out infinite; transform-origin: bottom center; }
 .shop-skip { position: absolute; right: 3vw; top: 3vh; width: 13vh; height: 13vh; }
 .shop-counter { position: absolute; left: 30vw; right: 3vw; top: 12vh; display: flex; gap: 2.5vw; justify-content: center; }
-.shop-item { width: min(42vh, 21vw); background: #fff; border-radius: 30px; padding: 2vh 1.5vh 1.5vh; box-shadow: 0 4px 12px rgba(0,0,0,.12); display: flex; flex-direction: column; align-items: center; gap: 1vh; border: 6px solid #fff; transition: transform .2s, opacity .2s; }
+.shop-item { width: min(42vh, 21vw); background: #E9EDF1; border-radius: 30px; padding: 2vh 1.5vh 1.5vh; box-shadow: 0 4px 12px rgba(0,0,0,.12); display: flex; flex-direction: column; align-items: center; gap: 1vh; border: 6px solid #E9EDF1; transition: transform .2s, opacity .2s; }
 .shop-art { display: block; width: 82%; aspect-ratio: 1; }
 .shop-art svg, .shop-skip svg, .shop-seller svg { width: 100%; height: 100%; }
 .shop-price { display: flex; gap: .6vh; }
@@ -101,7 +101,7 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 #album { position: fixed; inset: 0; z-index: 15; background: #FFF6E5; overflow-y: auto; touch-action: pan-y; padding: 4vh 4vw; }
 #album-close { position: fixed; right: 3vw; top: 3vh; width: 12vh; height: 12vh; z-index: 1; }
 #album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16vh, 1fr)); gap: 2vh; padding-right: 14vh; }
-.sticker { aspect-ratio: 1; background: #fff; border-radius: 50%; padding: 2vh; box-shadow: 0 3px 8px rgba(0,0,0,.12); border: 5px solid #fff; }
+.sticker { aspect-ratio: 1; background: #E9EDF1; border-radius: 50%; padding: 2vh; box-shadow: 0 3px 8px rgba(0,0,0,.12); border: 5px solid #E9EDF1; }
 .sticker.empty { background: none; box-shadow: none; border: 5px dashed #E0CFAE; }
 
 /* Rodič */
