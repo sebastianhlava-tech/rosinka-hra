@@ -206,10 +206,13 @@ if (!kinds.length) {
 }
 
 mkdirSync(OUT, { recursive: true });
+// voices/texts.json pamatuje text každého hotového souboru. Když se text věty změní, namluví se znovu.
+const TEXTS = join(OUT, 'texts.json');
+const texts = existsSync(TEXTS) ? JSON.parse(readFileSync(TEXTS, 'utf8')) : {};
 const todo = kinds.flatMap((kind) => SENTENCES
   .filter((s) => !own.has(`${kind}:${s.key}`))
   .map((s) => ({ kind, s, file: join(OUT, voiceFileName(kind, s, 'mp3')) }))
-  .filter((t) => !existsSync(t.file)));
+  .filter((t) => !existsSync(t.file) || (texts[`${t.kind}:${t.s.key}`] ?? t.s.text) !== t.s.text));
 const chars = todo.reduce((n, t) => n + t.s.text.length, 0);
 
 console.log(`Hlasy: ${kinds.join(', ')}. Model: ${model}.`);
@@ -245,6 +248,8 @@ let done = 0;
 for (const { kind, s, file } of todo) {
   try {
     writeFileSync(file, await speak(voices[kind], s.text));
+    texts[`${kind}:${s.key}`] = s.text;
+    writeFileSync(TEXTS, JSON.stringify(texts, null, 1));
   } catch (e) {
     console.log(`Chyba: ${e.message}`);
     console.log('Zkontroluj API klíč a Voice ID. Hotové věty zůstaly ve složce voices/. Další spuštění udělá jen zbytek.');
@@ -254,6 +259,7 @@ for (const { kind, s, file } of todo) {
   console.log(`${done}/${todo.length} ${kind} ${s.lang}: ${s.text}`);
 }
 
+// Do ZIP jdou jen věty, které hra ještě zná.
 const entries = readdirSync(OUT).filter((f) => f.endsWith('.mp3') && parseVoiceFile(f))
   .map((name) => ({ name, data: new Uint8Array(readFileSync(join(OUT, name))) }));
 const zip = makeZip(entries);

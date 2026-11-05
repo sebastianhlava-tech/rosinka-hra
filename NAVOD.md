@@ -49,7 +49,26 @@ Asi jednou za 2 minuty stojí u cesty krámek. Každé místo má svůj: ovoce, 
 3. Když je hvězdiček dost, prodavač poděkuje a dá věc.
 Šipka vpravo nahoře krámek přeskočí. Krámek se neukáže, když nejsou žádné hvězdičky.
 
-Věc do ruky drží postavička do konce hry. Věc do pokojíčku je na poličce u postýlky při Dobrou noc.
+Každá věc něco dělá:
+- **Jídlo** (jablko, banán, zmrzlina, lízátko, kakao): Rosinka ho drží a postupně sní. Pak hlas řekne „Mňam, to bylo dobré!“
+- **Balónek**: Rosinka skáče výš a padá pomaleji. Dosáhne na hvězdy v oblacích.
+- **Lucernička**: kolem Rosinky svítí teplé světlo.
+- **Pro kamaráda** (mašle, korunka, klobouček): kamarád ji má hned na sobě. V krámku je jen tehdy, když dítě má kamaráda.
+- **Do pokojíčku** (šiška, sněhulák, autíčko, medvídek, hvězdička, měsíček): je na poličce u postýlky při Dobrou noc.
+
+## Kamarádi
+
+Za postup ve stopě učení dostane dítě trvalého kamaráda (nejvýš 3). Kamarádi běží s Rosinkou v každé hře a chytají hvězdy, které Rosinka mine.
+Na úvodní obrazovce ťukni na kamaráda: otevře se jeho tvorba (druh, barva, oči, na krk, na hlavu, na záda). Šedé doplňky se koupí v krámku.
+V Pro rodiče jde kamaráda upravit nebo přidat.
+
+## Vylepšení ve hře
+
+- **Létání** a **velká**: každá druhá řada hvězd je vysoko v oblacích. Velká Rosinka překážky překročí sama.
+- **Košík**: na zemi leží jablka. Hlas počítá: „Jedno jablko. Dvě jablka.“
+- **Kytičky**: každá pátá kytička nechá vyrůst hvězdu.
+- **Hudba**: kamarádi tancují.
+- **Bublina**, **magnet**, **duha**, **třpyt**, **motýlci**: jako dřív.
 Knížka vpravo dole při Dobrou noc otevře album samolepek: každý naučený pojem je jedna samolepka.
 Krámky vypneš v Pro rodiče (Krámky). Věty krámku nahraješ ve skupině Krámek.
 

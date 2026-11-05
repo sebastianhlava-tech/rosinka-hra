@@ -1,5 +1,7 @@
 // Start hry a přepínání obrazovek.
-import { artSvg, shapeTint, svgToDataUrl } from './art.js';
+import { artSvg, loadImage, shapeTint, svgToDataUrl } from './art.js';
+import { SPECIES_IDS, newPet, petSvg } from './pets.js';
+import { openPetCreator } from './petcreator.js';
 import { DIFFICULTIES, MAX_FRIENDS, nextUpgrade } from './biomes.js';
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
@@ -52,12 +54,32 @@ const world = new World($('canvas'), {
   onShop: (biome) => openShop($('shop'), biome, state, async (item) => {
     save();
     world.wallet = state.stars;
-    if (item?.kind === 'hand') await world.setHand(item.art);
+    if (item?.kind === 'hand' || item?.kind === 'eat') await world.setHand(item);
+    if (item?.kind === 'pet') await showPets();
     if (item) world.burst();
     world.resumeAfterQuestion();
   }),
+  onAte: () => say('yum'),
+  onApple: (n) => { chime(880 + n * 60); if (n <= 5) say(`apples-${n}`); },
   onNote: () => chime(NOTES[noteTurn++ % NOTES.length]),
 });
+
+// Trvalí kamarádi běží s Rosinkou od začátku hry.
+async function showPets() {
+  world.setPets(await Promise.all(state.pets.map((p) => loadImage(petSvg(p)))));
+}
+
+// Po postupu ve stopě dostane dítě trvalého kamaráda (nejvýš 3).
+async function giftPet(animalArt) {
+  if (state.pets.length >= MAX_FRIENDS) return false;
+  const known = SPECIES_IDS.indexOf(animalArt);
+  const used = state.pets.map((p) => p.species);
+  const species = known >= 0 && !used.includes(known) ? known : SPECIES_IDS.findIndex((_, i) => !used.includes(i));
+  state.pets.push(newPet(Math.max(0, species)));
+  save();
+  await showPets();
+  return true;
+}
 
 // Nová hvězdička v peněžence: krátce se zvětší a cinkne.
 function earned() {
@@ -111,7 +133,18 @@ function resetZoom() {
 function showStart() {
   $('start-hero').src = portrait('child');
   setFamily('start');
+  $('start-pets').innerHTML = state.pets.map((p, i) => `<button data-pet="${i}"><img src="${svgToDataUrl(petSvg(p))}" alt=""></button>`).join('');
   show('start');
+}
+
+// Ťuknutí na kamaráda na úvodní obrazovce ho otevře k úpravě.
+function showPetCreator(i, after) {
+  show('creator');
+  openPetCreator($('creator'), state.pets[i] ?? newPet(state.pets.length), state.petItems, (pet) => {
+    state.pets[i] = pet;
+    save();
+    after();
+  });
 }
 
 function goToBed() {
@@ -164,6 +197,7 @@ async function play() {
   show('game');
   world.start(state.minutes, playLevel(state.progress), DIFFICULTIES[state.difficulty]);
   world.wallet = state.stars;
+  await showPets();
 }
 
 function renderChoices(q, onPick) {
@@ -191,7 +225,7 @@ function askQuestion() {
 
   const finish = async () => {
     finished = true;
-    recordAnswer(state.progress, q.item.id, wrong === 0);
+    const { levelUp } = recordAnswer(state.progress, q.item.id, wrong === 0);
     world.setLevel(playLevel(state.progress));
     addStars(state, ANSWER_STARS);
     earned();
@@ -202,6 +236,11 @@ function askQuestion() {
     // V režimu Obojí po české pochvale zazní anglické slovo.
     if (state.lang === 'both' && q.answerId) await say(`word-${q.answerId}`, undefined, 'en');
     $('question').hidden = true;
+    const animal = q.choices.find((c) => c.cat === 'animal')?.art;
+    if (levelUp && await giftPet(animal)) {
+      world.burst();
+      await say('pet-new');
+    }
     giveUpgrade(q);
   };
 
@@ -233,7 +272,7 @@ function askQuestion() {
 }
 
 async function giveUpgrade(q) {
-  const kind = nextUpgrade(world.owned(), world.friends.length);
+  const kind = nextUpgrade(world.owned(), world.tempFriends, state.pets.length);
   const friend = q.choices.find((c) => c.cat === 'animal')?.art ?? 'dog';
   await world.giveUpgrade(kind, friend, MAX_FRIENDS);
   world.resumeAfterQuestion();
@@ -270,6 +309,14 @@ function openParentPanel() {
       $('shop').hidden = true;
       showCreator(kind, () => (state.locked ? goToBed() : showStart()));
     },
+    editPet: (i) => {
+      close();
+      world.stop();
+      stopVoice();
+      $('question').hidden = true;
+      $('shop').hidden = true;
+      showPetCreator(i, () => (state.locked ? goToBed() : showStart()));
+    },
   });
 }
 
@@ -280,6 +327,10 @@ $('night').addEventListener('click', (e) => {
   if (!state.locked) showStart();
 });
 $('room-shelf').addEventListener('click', bounce);
+$('start-pets').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pet]');
+  if (b) showPetCreator(Number(b.dataset.pet), showStart);
+});
 $('album-grid').addEventListener('click', bounce);
 $('album-btn').addEventListener('click', openAlbum);
 $('album-close').addEventListener('click', () => { $('album').hidden = true; });

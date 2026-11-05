@@ -1,6 +1,7 @@
 // Rodičovská část: vstup, nastavení, přehled učení, nahrávání hlasu.
 import { SENTENCES, TRACKS, isOff, itemStatus, newProgress, setStage, stageOf } from './questions.js';
 import { DIFFICULTIES } from './biomes.js';
+import { speciesName } from './pets.js';
 import { openRecorder } from './recorder.js';
 import { KID_SOUNDS, aiCount, exportRecordings, hasClip, importVoices, kidSound, removeAiVoices, removeClip, say, startRecording, stopVoice, syncVoices } from './voice.js';
 
@@ -123,6 +124,10 @@ function panel(root, state, api) {
         <button class="change-mom">Změnit maminku</button>
         <button class="change-dad">Změnit tatínka</button>
       </section>
+      <section class="actions pets">
+        ${state.pets.map((p, i) => `<button data-pet="${i}">Upravit kamaráda: ${speciesName(p)}</button>`).join('')}
+        ${state.pets.length < 3 ? `<button data-pet="${state.pets.length}">Přidat kamaráda</button>` : ''}
+      </section>
       <section class="settings">
         <label>Dobrou noc po <select class="minutes">${minutes}</select></label>
         <label>Obtížnost <span class="segments">${segments}</span></label>
@@ -175,6 +180,7 @@ function panel(root, state, api) {
   $('.close').onclick = api.close;
   $('.new-game').onclick = api.newGame;
   ['child', 'mom', 'dad'].forEach((kind) => { $(`.change-${kind}`).onclick = () => api.changeCharacter(kind); });
+  root.querySelectorAll('[data-pet]').forEach((b) => { b.onclick = () => api.editPet(Number(b.dataset.pet)); });
   $('.lock-night').onchange = (e) => { state.lockNight = e.target.checked; api.save(); };
   $('.sounds').onchange = (e) => { state.sounds = e.target.checked; api.save(); };
   $('.shops').onchange = (e) => { state.shops = e.target.checked; api.save(); };

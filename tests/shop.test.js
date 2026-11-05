@@ -5,13 +5,13 @@ import { SENTENCES } from '../js/questions.js';
 import { RUN_STARS_PER_STAR, SHOPS, SHOP_ITEMS, addRunStar, buy, shopItems } from '../js/shop.js';
 import { artSvg } from '../js/art.js';
 
-const fresh = (stars = 0) => ({ stars, starBits: 0, room: [] });
+const fresh = (stars = 0) => ({ stars, starBits: 0, room: [], pets: [], petItems: [] });
 
 test('každé místo má krámek se 3 věcmi za 1, 2 a 3 hvězdy', () => {
   BIOMES.forEach((b) => {
     const shop = SHOPS[b.id];
     assert.ok(shop, b.id);
-    assert.deepEqual(shop.items.map((i) => i.price), [1, 2, 3], b.id);
+    assert.deepEqual(shop.items.filter((i) => i.sold).map((i) => i.price), [1, 2, 3], b.id);
   });
   assert.equal(new Set(SHOP_ITEMS.map((i) => i.id)).size, SHOP_ITEMS.length);
 });
@@ -51,6 +51,28 @@ test('věc do pokojíčku, kterou už má, v krámku není. Věc do ruky ano', (
   const st = fresh(10);
   buy(st, 'teddy');
   buy(st, 'balloon');
-  assert.deepEqual(shopItems('city', st.room).map((i) => i.id), ['balloon', 'toycar']);
+  assert.deepEqual(shopItems('city', st).map((i) => i.id), ['balloon', 'toycar']);
   assert.deepEqual(st.room, ['teddy']);
+});
+
+test('doplněk pro kamaráda: bez kamaráda není v krámku, po koupi ho kamarád hned má', async () => {
+  const { newPet } = await import('../js/pets.js');
+  const st = fresh(5);
+  assert.deepEqual(shopItems('meadow', st).map((i) => i.id), ['apple', 'banana']);
+  st.pets.push(newPet(0));
+  assert.ok(shopItems('meadow', st).some((i) => i.id === 'petbow'));
+  assert.equal(buy(st, 'petbow'), true);
+  assert.equal(st.pets[0].neck, 2);
+  assert.deepEqual(st.petItems, ['petbow']);
+  assert.ok(!shopItems('meadow', st).some((i) => i.id === 'petbow'));
+});
+
+test('každý kamarád a doplněk jde nakreslit', async () => {
+  const { PET_CATEGORIES, newPet, petOptionCount, petSvg } = await import('../js/pets.js');
+  PET_CATEGORIES.forEach(({ id }) => {
+    for (let i = 0; i < petOptionCount(id); i++) {
+      const svg = petSvg({ ...newPet(), [id]: i });
+      assert.ok(svg.startsWith('<svg') && !svg.includes('undefined'), `${id} ${i}`);
+    }
+  });
 });

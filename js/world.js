@@ -25,6 +25,10 @@ const STAR_GAP = 1100;
 const MAGNET_REACH = 460;
 const MAX_SPARKS = 120;
 const FRIEND_PLACES = [-130, -235, 170];
+const EAT_TIME = 25;
+const BALLOON_GRAVITY = 0.68;
+const HIGH_STAR = 530;
+const APPLE_GAP = [700, 1100];
 const SHOP_FIRST = 60;
 const SHOP_EVERY = 120;
 const SHOP_W = 300;
@@ -60,7 +64,7 @@ export class World {
   async load(characterMarkup) {
     this.hero = await loadImage(characterMarkup);
     if (this.images.gift) return;
-    await Promise.all([...ART, 'gift', 'star', 'bird', 'flower'].map(async (key) => {
+    await Promise.all([...ART, 'gift', 'star', 'bird', 'flower', 'apple', 'basket'].map(async (key) => {
       this.images[key] = bake(await loadImage(artSvg(key)));
     }));
   }
@@ -85,6 +89,7 @@ export class World {
     this.size = 1;
     this.upgrades = new Set();
     this.friends = [];
+    this.tempFriends = 0;
     this.trail = [];
     this.flowers = [];
     this.sparks = [];
@@ -96,6 +101,13 @@ export class World {
     this.shop = null;
     this.nextShop = SHOP_FIRST;
     this.hand = null;
+    this.handKind = null;
+    this.handLeft = 0;
+    this.apples = [];
+    this.nextApple = 0;
+    this.appleCount = 0;
+    this.flowerCount = 0;
+    this.highTurn = 0;
     this.nextStone = 800;
     this.nextGift = GIFT_FIRST;
     this.nextStar = 1000;
@@ -149,14 +161,26 @@ export class World {
     this.state = 'walk';
   }
 
-  async setHand(art) {
-    this.hand = art ? bake(await loadImage(artSvg(art))) : null;
+  // Věc z krámku: jídlo se postupně sní, balónek nadnáší, lucerna svítí.
+  async setHand(item) {
+    this.hand = item ? bake(await loadImage(artSvg(item.art))) : null;
+    this.handKind = item?.kind ?? null;
+    this.handArt = item?.art ?? null;
+    this.handLeft = item?.kind === 'eat' ? EAT_TIME : 0;
+  }
+
+  // Trvalí kamarádi běží od začátku hry.
+  setPets(images) {
+    this.friends = images.slice(0, FRIEND_PLACES.length);
   }
 
   async giveUpgrade(kind, friendArt, maxFriends) {
     if (kind === 'party') this.burst();
     else this.upgrades.add(kind);
-    if (kind === 'friend' && this.friends.length < maxFriends) this.friends.push(await loadImage(artSvg(friendArt)));
+    if (kind === 'friend' && this.friends.length < maxFriends) {
+      this.friends.push(await loadImage(artSvg(friendArt)));
+      this.tempFriends = (this.tempFriends ?? 0) + 1;
+    }
   }
 
   spark(x, y, colour, size = 7, life = 0.9) {
@@ -201,9 +225,17 @@ export class World {
       this.nextStone += this.stoneGap();
     }
     if (edge >= this.nextStar) {
+      // S létáním nebo velikostí je každá druhá řada hvězd vysoko v oblacích.
+      const high = (this.has('fly') || this.has('big')) && this.highTurn++ % 2;
       const low = 270 + Math.random() * 110;
-      for (let i = 0; i < 5; i++) this.stars.push({ x: this.nextStar + i * 90, a: low + Math.sin(i * 0.8) * 50 });
+      for (let i = 0; i < 5; i++) this.stars.push({ x: this.nextStar + i * 90, a: high ? HIGH_STAR : low + Math.sin(i * 0.8) * 50 });
       this.nextStar += STAR_GAP;
+    }
+    // Košík: na zemi leží jablka. Rosinka je sbírá a hlas počítá.
+    if (this.has('basket') && edge >= this.nextApple) {
+      const x = Math.max(edge, this.nextApple);
+      if (!this.stones.some((s) => Math.abs(s.x - x) < 200)) this.apples.push({ x });
+      this.nextApple = x + between(APPLE_GAP);
     }
     this.stones = this.stones.filter((s) => s.x > this.dist - 200);
     this.birds = this.birds.filter((b) => b.x > this.dist - 200);
@@ -218,7 +250,7 @@ export class World {
       return;
     }
     if (this.y > 0 || this.vy > 0) {
-      this.vy -= GRAVITY * dt;
+      this.vy -= GRAVITY * (this.handArt === 'balloon' ? BALLOON_GRAVITY : 1) * dt;
       this.y = Math.max(0, this.y + this.vy * dt);
       if (this.y === 0) this.vy = 0;
     }
@@ -234,6 +266,11 @@ export class World {
         s.done = true;
         if (this.has('bubble')) {
           for (let i = 0; i < 8; i++) this.spark(s.x + s.w / 2, GROUND - s.h, '#9BD6F2');
+          continue;
+        }
+        // Velká Rosinka překážku překročí sama.
+        if (this.has('big')) {
+          if (this.y === 0) this.vy = 520;
           continue;
         }
         this.vy = 0;
@@ -261,7 +298,8 @@ export class World {
 
   checkStars(dt) {
     const x = this.dist + HERO_X + HERO_W / 2;
-    const a = this.y + HERO_H / 2;
+    const a = this.y + (HERO_H * this.size) / 2;
+    const reachY = 130 * this.size;
     this.stars = this.stars.filter((s) => {
       if (s.x < this.dist - 100) return false;
       const dx = x - s.x;
@@ -270,11 +308,37 @@ export class World {
         s.x += dx * Math.min(1, dt * 5);
         s.a += dy * Math.min(1, dt * 5);
       }
-      if (Math.abs(dx) > 90 || Math.abs(dy) > 130) return true;
+      // Kamarádi chytí nízké hvězdy, které Rosinka minula.
+      const petX = this.friends.map((_, i) => this.dist + HERO_X + FRIEND_PLACES[i] + 55);
+      const pet = s.a < 260 && s.x < x - 60 && petX.find((px) => Math.abs(px - s.x) < 50);
+      if (!pet && (Math.abs(dx) > 90 || Math.abs(dy) > reachY)) return true;
       this.handlers.onStar();
       for (let i = 0; i < 5; i++) this.spark(s.x, GROUND - s.a, '#FFD432');
       return false;
     });
+  }
+
+  checkApples() {
+    const x = this.dist + HERO_X + HERO_W / 2;
+    this.apples = this.apples.filter((p) => {
+      if (p.x < this.dist - 100) return false;
+      if (Math.abs(x - p.x) > 70 || this.y > 120) return true;
+      this.appleCount++;
+      for (let i = 0; i < 6; i++) this.spark(p.x, GROUND - 40, '#E23B3B');
+      this.handlers.onApple?.(this.appleCount);
+      return false;
+    });
+  }
+
+  eat(dt) {
+    if (this.handKind !== 'eat' || !this.hand) return;
+    this.handLeft -= dt;
+    if (this.handLeft > 0) return;
+    this.hand = null;
+    this.handKind = null;
+    this.handArt = null;
+    for (let i = 0; i < 12; i++) this.spark(this.dist + HERO_X + 110, GROUND - this.y - 150, RAINBOW[i % 6]);
+    this.handlers.onAte?.();
   }
 
   checkGift() {
@@ -302,6 +366,7 @@ export class World {
     this.oldBiome = this.biome;
     this.biome = next;
     this.fade = FADE_TIME;
+    this.appleCount = 0;
     this.handlers.onBiome(BIOMES[next].id);
   }
 
@@ -309,6 +374,8 @@ export class World {
     if (!this.has('flowers') || this.y > 0 || this.dist < this.nextFlower) return;
     this.flowers.push({ x: this.dist + HERO_X + 20, age: 0, size: 50 + Math.random() * 30 });
     this.nextFlower = this.dist + 150;
+    // Každá pátá kytička nechá před Rosinkou vyrůst hvězdu.
+    if (++this.flowerCount % 5 === 0) this.stars.push({ x: this.dist + HERO_X + 320, a: 180 });
     if (this.flowers.length > 16) this.flowers.shift();
   }
 
@@ -333,6 +400,8 @@ export class World {
       this.checkStars(dt);
       this.checkGift();
       this.checkShop();
+      this.checkApples();
+      this.eat(dt);
       this.growFlowers();
       if (this.has('sparkle') && Math.random() < dt * 14) this.spark(this.dist + HERO_X + 40, GROUND - this.y - 60 - Math.random() * 120, RAINBOW[Math.floor(Math.random() * 6)], 6);
     }
@@ -451,6 +520,7 @@ export class World {
       const flap = Math.sin(this.elapsed * 6) * 8;
       c.drawImage(this.images.bird, b.x - this.dist, GROUND - b.a - 50 + flap, 100, 100);
     });
+    this.apples.forEach((p) => c.drawImage(this.images.apple, p.x - this.dist - 32, GROUND - 70, 64, 64));
     if (this.gift) {
       const bob = Math.sin(this.elapsed * 2) * 6;
       c.drawImage(this.images.gift, this.gift.x - this.dist, GROUND - 130 + bob, 120, 120);
@@ -494,8 +564,21 @@ export class World {
     c.ellipse(HERO_X + HERO_W / 2, GROUND + 8, 60 * this.size * (1 - Math.min(this.y, 300) / 500), 11, 0, 0, Math.PI * 2);
     c.fill();
 
+    // Lucerna: teplé světlo kolem Rosinky.
+    if (this.handArt === 'lantern') {
+      const gx = HERO_X + HERO_W / 2;
+      const gy = GROUND - this.y - h / 2;
+      const glow = c.createRadialGradient(gx, gy, 20, gx, gy, 260);
+      glow.addColorStop(0, 'rgba(255,229,138,.55)');
+      glow.addColorStop(1, 'rgba(255,229,138,0)');
+      c.fillStyle = glow;
+      c.fillRect(gx - 260, gy - 260, 520, 520);
+    }
+
+    // S hudbou kamarádi tancují.
+    const dance = this.has('music') ? 2 : 1;
     this.friends.forEach((friend, i) => {
-      const hop = Math.abs(Math.sin(this.elapsed * 5 + i)) * 14;
+      const hop = Math.abs(Math.sin(this.elapsed * 5 * dance + i)) * 14 * dance;
       c.drawImage(friend, HERO_X + FRIEND_PLACES[i], GROUND - 110 - hop, 110, 110);
     });
 
@@ -503,7 +586,22 @@ export class World {
     c.translate(HERO_X + HERO_W / 2, GROUND - this.y + 12 - bob);
     c.rotate(tilt);
     c.drawImage(this.hero, -w / 2, -h, w, h);
-    if (this.hand) c.drawImage(this.hand, w * 0.18, -h * 0.62, 96 * this.size, 96 * this.size);
+    if (this.hand) {
+      // Jídlo se postupně zmenšuje, jak ho Rosinka jí.
+      const left = this.handKind === 'eat' ? 0.4 + 0.6 * Math.max(0, this.handLeft / EAT_TIME) : 1;
+      const s = 96 * this.size * left;
+      const lift = this.handArt === 'balloon' ? h * 0.45 : 0;
+      c.drawImage(this.hand, w * 0.18 + (96 * this.size - s) / 2, -h * 0.62 - lift + (96 * this.size - s), s, s);
+      if (lift) {
+        c.strokeStyle = '#888';
+        c.lineWidth = 3;
+        c.beginPath();
+        c.moveTo(w * 0.18 + 48 * this.size, -h * 0.62 - lift + 96 * this.size);
+        c.lineTo(w * 0.3, -h * 0.5);
+        c.stroke();
+      }
+    }
+    if (this.has('basket')) c.drawImage(this.images.basket, -w * 0.62, -h * 0.32, 70 * this.size, 70 * this.size);
     c.restore();
 
     const middle = GROUND - this.y - h / 2;

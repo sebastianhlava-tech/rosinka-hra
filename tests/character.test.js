@@ -53,3 +53,11 @@ test('vylepšení jdou po řadě a nakonec je oslava', async () => {
   const all = [...new Set(UPGRADES)];
   assert.equal(nextUpgrade(all, 3), 'party');
 });
+
+test('se 3 trvalými kamarády přijde místo kamaráda další vylepšení', async () => {
+  const { nextUpgrade } = await import('../js/biomes.js');
+  assert.equal(nextUpgrade(['fly', 'big', 'rainbow'], 0, 0), 'friend');
+  assert.equal(nextUpgrade(['fly', 'big', 'rainbow'], 0, 3), 'bubble');
+  assert.equal(nextUpgrade(['fly', 'big', 'rainbow', 'bubble'], 0, 3), 'basket');
+  assert.equal(nextUpgrade(['fly', 'big', 'rainbow', 'friend'], 1, 1), 'bubble');
+});

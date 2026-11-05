@@ -9,7 +9,7 @@ const starIcon = artSvg('star');
 
 export function openShop(root, biome, state, onDone) {
   const shop = SHOPS[biome];
-  const items = shopItems(biome, state.room);
+  const items = shopItems(biome, state);
   let chosen = null;
   let paid = 0;
   let busy = false;
@@ -65,6 +65,7 @@ export function openShop(root, biome, state, onDone) {
     buy(state, chosen.id);
     root.querySelector('.shop-item.chosen')?.classList.add('bought');
     await say('thanks');
+    if (chosen.wear) await say(`wear-${chosen.id}`);
     close(chosen);
   };
 

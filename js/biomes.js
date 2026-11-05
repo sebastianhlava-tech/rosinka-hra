@@ -22,10 +22,15 @@ export const DIFFICULTIES = {
 };
 
 // Pořadí, v jakém dítě vylepšení dostává. Vylepšení zůstanou do konce hry.
-export const UPGRADES = ['fly', 'big', 'rainbow', 'friend', 'bubble', 'flowers', 'magnet', 'sparkle', 'butterfly', 'friend', 'music', 'friend'];
+export const UPGRADES = ['fly', 'big', 'rainbow', 'friend', 'bubble', 'basket', 'flowers', 'magnet', 'sparkle', 'butterfly', 'friend', 'music', 'friend'];
 export const MAX_FRIENDS = 3;
 
-export function nextUpgrade(owned, friends) {
-  const turn = owned.length + Math.max(0, friends - 1);
-  return UPGRADES[turn] ?? 'party';
+// owned = vylepšení, která dítě v této hře má. friends = kamarádi z vylepšení, pets = trvalí kamarádi.
+// Kamarád přijde jen tehdy, když je pro něj místo.
+export function nextUpgrade(owned, friends, pets = 0) {
+  const left = [...UPGRADES];
+  const take = (u) => { const i = left.indexOf(u); if (i >= 0) left.splice(i, 1); };
+  owned.filter((u) => u !== 'friend').forEach(take);
+  for (let i = 0; i < friends; i++) take('friend');
+  return left.find((u) => u !== 'friend' || friends + pets < MAX_FRIENDS) ?? 'party';
 }
