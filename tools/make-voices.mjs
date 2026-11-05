@@ -39,7 +39,8 @@ function askHidden(question) {
     stdin.resume();
     stdin.setEncoding('utf8');
     const onData = (chunk) => {
-      for (const ch of chunk) {
+      // Vložení (Cmd+V) přidá neviditelné značky. Ty se do klíče nesmí dostat.
+      for (const ch of chunk.replace(/\x1b\[20[01]~/g, '')) {
         if (ch === '\u0003') process.exit(1);
         if (ch === '\r' || ch === '\n') {
           stdin.setRawMode(false);
@@ -49,7 +50,8 @@ function askHidden(question) {
           resolve(answer.trim());
           return;
         }
-        answer = ch === '\u007f' ? answer.slice(0, -1) : answer + ch;
+        if (ch === '\u007f') answer = answer.slice(0, -1);
+        else if (ch >= ' ') answer += ch;
       }
     };
     stdin.on('data', onData);
