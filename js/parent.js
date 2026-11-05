@@ -2,7 +2,7 @@
 import { SENTENCES, TRACKS, isOff, itemStatus, newProgress, setStage, stageOf } from './questions.js';
 import { DIFFICULTIES } from './biomes.js';
 import { openRecorder } from './recorder.js';
-import { aiCount, exportRecordings, hasClip, importVoices, removeAiVoices, removeClip, say, startRecording, stopVoice } from './voice.js';
+import { KID_SOUNDS, aiCount, exportRecordings, hasClip, importVoices, kidSound, removeAiVoices, removeClip, say, startRecording, stopVoice } from './voice.js';
 
 const HOLD_MS = 3000;
 const LANGS = [['cs', 'Čeština'], ['both', 'Čeština + anglická slovíčka'], ['en', 'English']];
@@ -55,7 +55,7 @@ function learningHtml(progress) {
   }).join('');
 }
 
-function voiceRow(s, kind) {
+function voiceRow(s, kind, play = () => say(s.id, kind, s.lang)) {
   const row = document.createElement('div');
   row.className = 'voice-row';
   const draw = () => {
@@ -83,7 +83,7 @@ function voiceRow(s, kind) {
         rec.textContent = 'Mikrofon nejde';
       }
     };
-    row.querySelector('.play').onclick = () => say(s.id, kind, s.lang);
+    row.querySelector('.play').onclick = play;
     row.querySelector('.del').onclick = async () => { await removeClip(kind, s.key); draw(); };
   };
   draw();
@@ -143,6 +143,10 @@ function panel(root, state, api) {
           <label>Nahrává <select class="recorder"><option value="mom">Maminka</option><option value="dad">Tatínek</option></select></label>
           <div class="voice-list"></div>
         </details>
+      </section>
+      <section><h3>Hlas Rosinky</h3>
+        <p>Krátké zvuky, které Rosinka řekne ve hře. Jsou jen v tomto iPadu a nikam se neposílají. Co nenahraješ, zní jako dřív.</p>
+        <div class="kid-list"></div>
       </section>
       <section><h3>Hlas z ElevenLabs</h3>
         <p>Hra mluví tímto hlasem: nejdřív vaše nahrávka, potom hlas z ElevenLabs, nakonec hlas tabletu.</p>
@@ -223,6 +227,7 @@ function panel(root, state, api) {
     api.save();
     panel(root, state, api);
   };
+  KID_SOUNDS.forEach((s) => $('.kid-list').append(voiceRow(s, 'kid', () => { stopVoice(); kidSound(s.key); })));
   $('.recorder').onchange = (e) => voiceSection(root, state.progress, e.target.value);
   voiceSection(root, state.progress, 'mom');
 }

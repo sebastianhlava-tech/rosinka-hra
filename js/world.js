@@ -124,12 +124,18 @@ export class World {
     if (this.state === 'bump') return this.hop();
     if (this.state !== 'walk') return;
     if (this.has('fly')) this.vy = FLAP;
-    else if (this.y === 0) this.vy = JUMP;
+    else if (this.y === 0) this.jump();
   }
 
   hop() {
     this.state = 'walk';
-    this.vy = this.has('fly') ? FLAP : JUMP;
+    if (this.has('fly')) this.vy = FLAP;
+    else this.jump();
+  }
+
+  jump() {
+    this.vy = JUMP;
+    this.handlers.onJump?.();
   }
 
   resumeAfterQuestion() {

@@ -6,7 +6,7 @@ import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
 import { pickQuestion, playLevel, recordAnswer } from './questions.js';
 import { characterOf, loadState, saveState } from './storage.js';
-import { chime, initVoice, say, setChimes, setLang, setSpeaker, stopVoice, unlockAudio } from './voice.js';
+import { chime, initVoice, isSpeaking, kidSound, say, setChimes, setLang, setSpeaker, stopVoice, unlockAudio } from './voice.js';
 import { World } from './world.js';
 
 const NOTES = [523, 587, 659, 784, 880];
@@ -31,9 +31,15 @@ function nextGuide() {
   return guideTurn++ % 2 ? 'dad' : 'mom';
 }
 
+// Hlas Rosinky při skoku zazní nejvýš jednou za 2 sekundy a nikdy přes hlas rodiče.
+let kidJumpAt = 0;
 const world = new World($('canvas'), {
-  onGift: askQuestion,
-  onBump: () => { chime(220); say('bum'); },
+  onGift: async () => { await kidSound('gift'); askQuestion(); },
+  onJump: () => {
+    if (Date.now() - kidJumpAt < 2000 || isSpeaking()) return;
+    if (kidSound('jump')) kidJumpAt = Date.now();
+  },
+  onBump: () => { chime(220); if (!kidSound('bump')) say('bum'); },
   onTimeUp: goToBed,
   onBiome: (id) => say(`place-${id}`),
   onStar: () => chime(1040),

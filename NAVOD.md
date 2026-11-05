@@ -38,6 +38,12 @@ Každý má svoje věty. Česky je 82 vět na osobu, anglicky 131. Jazyk vět vy
 Když věta chybí, hraje nahrávka druhého rodiče, potom hlas tabletu.
 Nahrávky jsou jen v tomto iPadu a nemají zálohu. Když smažeš ikonu hry, nahrávky zmizí.
 
+## Hlas Rosinky
+
+V Pro rodiče, v části Hlas Rosinky, nahraj krátké zvuky: skok („hop!“), náraz („bum!“ nebo „au!“) a dárek („jé!“).
+Hra je pak přehraje ve hře. Skok zazní nejvýš jednou za 2 sekundy. Co nenahraješ, zní jako dřív.
+Tyto nahrávky jsou jen v iPadu. Nejdou do stažených nahrávek, do ElevenLabs ani na GitHub.
+
 ## Hlas z ElevenLabs (aby nebylo nutné nahrávat vše)
 
 ElevenLabs udělá z vašich nahrávek klon hlasu. Skript pak namluví všechny věty česky i anglicky.

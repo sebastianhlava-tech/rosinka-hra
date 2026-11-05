@@ -9,6 +9,7 @@ import { makeZip, readZip } from './zip.js';
 const textOf = new Map(SENTENCES.map((s) => [s.key, s.text]));
 const urls = new Map();
 const audio = new Audio();
+const kidAudio = new Audio();
 let finishCurrent = null;
 let audioCtx = null;
 let speaker = 'mom';
@@ -43,8 +44,10 @@ export async function initVoice() {
 
 // iPad pustí zvuk až po ťuknutí. Volá se z tlačítka Hrát.
 export function unlockAudio() {
-  audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-  audio.play().catch(() => {});
+  for (const a of [audio, kidAudio]) {
+    a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+    a.play().catch(() => {});
+  }
   try {
     audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
     audioCtx.resume();
@@ -112,6 +115,28 @@ export function chime(freq = 660) {
 }
 
 export const hasClip = (kind, id) => urls.has(clipKey(kind, id));
+export const isSpeaking = () => finishCurrent !== null;
+
+// Hlas Rosinky: krátké zvuky ve hře. Jsou jen v tomto tabletu a nikdy se neexportují.
+export const KID_SOUNDS = [
+  { key: 'jump', text: 'Skok, třeba „hop!“' },
+  { key: 'bump', text: 'Náraz do překážky, třeba „bum!“ nebo „au!“' },
+  { key: 'gift', text: 'Dárek, třeba „jé!“' },
+];
+
+// Přehraje zvuk Rosinky. Když není nahraný, vrátí null. Jinak Promise, která skončí s koncem zvuku.
+export function kidSound(id) {
+  const url = urls.get(clipKey('kid', id));
+  if (!url) return null;
+  return new Promise((resolve) => {
+    const done = () => { clearTimeout(guard); resolve(); };
+    const guard = setTimeout(done, 3000);
+    kidAudio.src = url;
+    kidAudio.onended = done;
+    kidAudio.onerror = done;
+    kidAudio.play().catch(done);
+  });
+}
 
 // Nahrávání a mazání pracuje s klíčem věty (s.key), ne s id.
 export async function removeClip(kind, sentence) {
