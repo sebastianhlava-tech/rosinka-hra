@@ -2,7 +2,7 @@
 import { SENTENCES, TRACKS, isOff, itemStatus, newProgress, setStage, stageOf } from './questions.js';
 import { DIFFICULTIES } from './biomes.js';
 import { openRecorder } from './recorder.js';
-import { hasClip, removeClip, say, startRecording, stopVoice } from './voice.js';
+import { aiCount, exportRecordings, hasClip, importVoices, removeAiVoices, removeClip, say, startRecording, stopVoice } from './voice.js';
 
 const HOLD_MS = 3000;
 const LANGS = [['cs', 'Čeština'], ['both', 'Čeština + anglická slovíčka'], ['en', 'English']];
@@ -144,6 +144,18 @@ function panel(root, state, api) {
           <div class="voice-list"></div>
         </details>
       </section>
+      <section><h3>Hlas z ElevenLabs</h3>
+        <p>Hra mluví tímto hlasem: nejdřív vaše nahrávka, potom hlas z ElevenLabs, nakonec hlas tabletu.</p>
+        <p>Načtené věty: maminka ${aiCount('mom')} z ${SENTENCES.length}, tatínek ${aiCount('dad')} z ${SENTENCES.length}.</p>
+        <div class="actions">
+          <button class="export-mom">Stáhnout nahrávky maminky</button>
+          <button class="export-dad">Stáhnout nahrávky tatínka</button>
+          <button class="primary import">Načíst hlasy</button>
+          <button class="ai-del">Smazat hlasy z ElevenLabs</button>
+          <input type="file" class="import-file" accept=".zip,.mp3,audio/*" multiple hidden>
+        </div>
+        <p class="ai-msg"></p>
+      </section>
       <section><h3>Co už umí</h3><p>Stopa se posune sama. Tady ji můžeš posunout, nebo vypnout.</p><div class="learning">${learningHtml(state.progress)}</div></section>
     </div>`;
 
@@ -176,6 +188,35 @@ function panel(root, state, api) {
   ['mom', 'dad'].forEach((kind) => {
     $(`.record-${kind}`).onclick = () => openRecorder(root, kind, recLang, state.progress, () => panel(root, state, api));
   });
+  const message = (text) => { $('.ai-msg').textContent = text; };
+  ['mom', 'dad'].forEach((kind) => {
+    $(`.export-${kind}`).onclick = async () => {
+      const zip = await exportRecordings(kind);
+      if (!zip) return message('Zatím tu nejsou žádné nahrávky.');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zip);
+      a.download = `rosinka-${kind === 'mom' ? 'maminka' : 'tatinek'}-nahravky.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    };
+  });
+  $('.import').onclick = () => $('.import-file').click();
+  $('.import-file').onchange = async (e) => {
+    message('Načítám…');
+    try {
+      const n = await importVoices([...e.target.files]);
+      if (!n) return message('V souboru nejsou hlasy pro tuto hru.');
+      panel(root, state, api);
+      root.querySelector('.ai-msg').textContent = `Hotovo. Počet načtených vět: ${n}.`;
+    } catch {
+      message('Soubor nejde přečíst. Zkus ZIP ze skriptu make-voices.');
+    }
+  };
+  $('.ai-del').onclick = async () => {
+    if (!confirm('Smazat hlasy z ElevenLabs? Vaše vlastní nahrávky zůstanou.')) return;
+    await removeAiVoices();
+    panel(root, state, api);
+  };
   $('.reset').onclick = () => {
     if (!confirm('Opravdu smazat postup v učení? Nahrávky hlasu zůstanou.')) return;
     state.progress = newProgress();

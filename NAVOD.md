@@ -38,6 +38,37 @@ Každý má svoje věty. Česky je 82 vět na osobu, anglicky 131. Jazyk vět vy
 Když věta chybí, hraje nahrávka druhého rodiče, potom hlas tabletu.
 Nahrávky jsou jen v tomto iPadu a nemají zálohu. Když smažeš ikonu hry, nahrávky zmizí.
 
+## Hlas z ElevenLabs (aby nebylo nutné nahrávat vše)
+
+ElevenLabs udělá z vašich nahrávek klon hlasu. Skript pak namluví všechny věty česky i anglicky.
+Pořadí ve hře: vaše nahrávka, potom hlas z ElevenLabs, nakonec hlas tabletu.
+Hlasy jsou jen v iPadu a v Macu ve složce `voices/`. Na GitHub nikdy nejdou.
+
+1. Na iPadu: Pro rodiče, Stáhnout nahrávky maminky (a tatínka). Pošli ZIP přes AirDrop do Macu a rozbal ho.
+2. Na elevenlabs.io: Voices, přidat hlas, Instant Voice Clone. Nahraj soubory ze ZIP. Klonování potřebuje placený tarif (Starter).
+3. Zkopíruj Voice ID maminky a tatínka. V profilu vytvoř API klíč.
+4. V Terminálu na Macu (místo tří teček vlož svoje hodnoty):
+
+```bash
+cd "/Users/sebastianhlava/Rosinka Hra"
+export ELEVENLABS_API_KEY=...
+export ELEVEN_VOICE_MOM=...
+export ELEVEN_VOICE_DAD=...
+node tools/make-voices.mjs
+```
+
+Skript ukáže, kolik vět chybí a kolik znaků to stojí. Nic nevytvoří. Když souhlasíš, spusť:
+
+```bash
+node tools/make-voices.mjs --go
+```
+
+5. Pošli soubor `voices/rosinka-hlasy.zip` přes AirDrop do iPadu a ulož ho do Souborů.
+6. Na iPadu: Pro rodiče, Načíst hlasy, vyber ZIP.
+
+Smazat hlasy z ElevenLabs jde tlačítkem v Pro rodiče. Vaše vlastní nahrávky zůstanou.
+Když přibudou nové věty, spusť skript znovu. Udělá jen chybějící věty.
+
 ## Aby dítě neodešlo ze hry
 
 1. V Nastavení otevři Zpřístupnění a Řízený přístup a zapni ho.

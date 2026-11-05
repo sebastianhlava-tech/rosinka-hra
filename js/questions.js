@@ -83,6 +83,18 @@ export const SENTENCES = [
   ...ALL_ITEMS.filter((i) => i.word).map((i) => sentence(`word-${i.id}`, 'en', i.word, i.track, i.stage)),
 ];
 
+// Soubor s hlasem: „mom__cs__color-red.mp3“. Stejné jméno používá export, skript i import.
+export const voiceFileName = (kind, s, ext) => `${kind}__${s.lang}__${s.id}.${ext}`;
+
+const knownKeys = new Set(SENTENCES.map((s) => s.key));
+
+export function parseVoiceFile(path) {
+  const m = path.split('/').pop().match(/^(mom|dad)__(cs|en)__(.+)\.\w+$/);
+  if (!m) return null;
+  const key = sentenceKey(m[3], m[2]);
+  return knownKeys.has(key) ? { kind: m[1], key } : null;
+}
+
 const NEW_SHARE = 0.3;
 const MASTERED_AFTER = 2;
 const RETURN_AFTER = 2;

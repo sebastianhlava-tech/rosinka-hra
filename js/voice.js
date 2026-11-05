@@ -1,8 +1,10 @@
 // Každá věta má dvě nahrávky: maminky a tatínka. Mluví ten, kdo je průvodce.
 // Když jeho věta chybí, hraje nahrávka druhého rodiče a potom hlas tabletu.
 // Věta je česky, nebo anglicky. Česká nahrávka má klíč jako dřív, takže staré nahrávky platí.
-import { SENTENCES, sentenceKey } from './questions.js';
+// Hlasy z ElevenLabs mají vlastní klíč „ai:…“, takže nikdy nepřepíšou vlastní nahrávku.
+import { SENTENCES, parseVoiceFile, sentenceKey, voiceFileName } from './questions.js';
 import { deleteClip, loadClips, saveClip } from './storage.js';
+import { makeZip, readZip } from './zip.js';
 
 const textOf = new Map(SENTENCES.map((s) => [s.key, s.text]));
 const urls = new Map();
@@ -14,6 +16,7 @@ let chimes = true;
 let voiceLang = 'cs';
 
 const clipKey = (kind, id) => `${kind}:${id}`;
+const aiKey = (kind, id) => `ai:${kind}:${id}`;
 const otherOf = (kind) => (kind === 'mom' ? 'dad' : 'mom');
 
 export function setChimes(on) {
@@ -81,7 +84,9 @@ export function say(id, kind = speaker, lang = voiceLang) {
       resolve();
     };
     const done = () => finishCurrent?.();
-    const url = urls.get(clipKey(kind, key)) ?? urls.get(clipKey(otherOf(kind), key));
+    // Pořadí: vlastní nahrávka, hlas z ElevenLabs, totéž od druhého rodiče, nakonec hlas tabletu.
+    const other = otherOf(kind);
+    const url = urls.get(clipKey(kind, key)) ?? urls.get(aiKey(kind, key)) ?? urls.get(clipKey(other, key)) ?? urls.get(aiKey(other, key));
     if (url) {
       audio.src = url;
       audio.onended = done;
@@ -140,4 +145,49 @@ export async function startRecording(kind, sentence) {
     rec.stop();
     return finished;
   };
+}
+
+export const aiCount = (kind) => [...urls.keys()].filter((k) => k.startsWith(`ai:${kind}:`)).length;
+
+// Vlastní nahrávky jednoho rodiče jako ZIP. Slouží jako vzorek hlasu pro ElevenLabs.
+export async function exportRecordings(kind) {
+  const clips = await loadClips();
+  const entries = [];
+  for (const s of SENTENCES) {
+    const blob = clips.get(clipKey(kind, s.key));
+    if (!blob) continue;
+    const ext = blob.type.includes('webm') ? 'webm' : 'm4a';
+    entries.push({ name: voiceFileName(kind, s, ext), data: new Uint8Array(await blob.arrayBuffer()) });
+  }
+  return entries.length ? new Blob([makeZip(entries)], { type: 'application/zip' }) : null;
+}
+
+// Načte hlasy z ElevenLabs: ZIP nebo jednotlivé soubory. Vrátí počet načtených vět.
+export async function importVoices(files) {
+  let saved = 0;
+  for (const file of files) {
+    const entries = file.name.toLowerCase().endsWith('.zip')
+      ? await readZip(await file.arrayBuffer())
+      : [{ name: file.name, data: new Uint8Array(await file.arrayBuffer()) }];
+    for (const { name, data } of entries) {
+      const found = parseVoiceFile(name);
+      if (!found) continue;
+      const key = aiKey(found.kind, found.key);
+      const blob = new Blob([data], { type: 'audio/mpeg' });
+      await saveClip(key, blob);
+      if (urls.has(key)) URL.revokeObjectURL(urls.get(key));
+      urls.set(key, URL.createObjectURL(blob));
+      saved++;
+    }
+  }
+  return saved;
+}
+
+// Smaže jen hlasy z ElevenLabs. Vlastní nahrávky zůstanou.
+export async function removeAiVoices() {
+  for (const key of [...urls.keys()].filter((k) => k.startsWith('ai:'))) {
+    await deleteClip(key);
+    URL.revokeObjectURL(urls.get(key));
+    urls.delete(key);
+  }
 }
