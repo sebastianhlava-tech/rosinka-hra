@@ -8,8 +8,8 @@ import { artKeys, artSvg } from '../js/art.js';
 const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const master = (p, item) => { recordAnswer(p, item.id, true); recordAnswer(p, item.id, true); };
 
-test('12 stop, každé id otázky jednou', () => {
-  assert.equal(TRACKS.length, 12);
+test('17 stop, každé id otázky jednou', () => {
+  assert.equal(TRACKS.length, 17);
   assert.equal(new Set(ALL_ITEMS.map((i) => i.id)).size, ALL_ITEMS.length);
 });
 
@@ -51,15 +51,16 @@ test('každá věta má češtinu i angličtinu a jedinečný klíč', () => {
   assert.equal(cs.length, en.filter((s) => !s.id.startsWith('word-')).length);
   cs.forEach((s) => assert.ok(en.some((e) => e.id === s.id && e.text), s.id));
   assert.ok(cs.every((s) => s.key === s.id), 'česká věta má starý klíč');
-  ALL_ITEMS.forEach((i) => assert.ok(SENTENCES.some((s) => s.key === `en:word-${i.answerId ?? i.id}`), i.id));
+  ALL_ITEMS.filter((i) => i.cat !== 'odd').forEach((i) => assert.ok(SENTENCES.some((s) => s.key === `en:word-${i.answerId ?? i.id}`), i.id));
+  ALL_ITEMS.forEach((i) => assert.ok(SENTENCES.some((s) => s.key === (i.voice ?? i.id)), i.id));
 });
 
 test('každý obrázek otázky existuje', () => {
   const keys = new Set(artKeys());
-  ALL_ITEMS.filter((i) => i.art).forEach((i) => {
-    const svg = artSvg(i.art, '#123456');
-    assert.ok(svg.includes('<svg') && !svg.includes('undefined'), i.art);
-    if (!i.art.includes(':')) assert.ok(keys.has(i.art), i.art);
+  ALL_ITEMS.flatMap((i) => [i.art, i.prompt, ...(i.options ?? [])]).filter(Boolean).forEach((art) => {
+    const svg = artSvg(art, '#123456');
+    assert.ok(svg.includes('<svg') && !svg.includes('undefined'), art);
+    if (!art.includes(':')) assert.ok(keys.has(art), art);
   });
 });
 
@@ -192,4 +193,57 @@ test('starý postup (úroveň 7) se převede na stopy a nic neztratí', () => {
 
 test('nový hráč má úroveň světa 1', () => {
   assert.equal(playLevel(normalizeProgress(undefined)), 1);
+});
+
+const askMany = (track, stage, cat, n, check) => {
+  const p = newProgress();
+  TRACKS.forEach((t) => setStage(p, t.id, 0));
+  setStage(p, track, stage);
+  const rng = seeded(29);
+  let seen = 0;
+  while (seen < n) {
+    const q = pickQuestion(p, rng);
+    if (q.item.cat === cat) { seen++; check(q); }
+    recordAnswer(p, q.item.id, true);
+  }
+};
+
+test('co k sobě patří: špatné odpovědi jsou vždy z druhé skupiny', () => {
+  askMany('match', 2, 'match', 60, (q) => {
+    q.choices.filter((c) => c.id !== q.answerId).forEach((c) => assert.notEqual(c.kind, q.item.kind, q.item.id));
+    assert.ok(q.item.prompt);
+  });
+});
+
+test('co sem nepatří: 4 obrázky, jen jeden jiný', () => {
+  askMany('odd', 2, 'odd', 40, (q) => {
+    assert.equal(q.choices.length, 4);
+    const arts = q.choices.map((c) => c.art);
+    const answer = q.choices.find((c) => c.id === q.answerId).art;
+    assert.equal(arts.filter((a) => a === answer).length, 1);
+    assert.equal(q.wordKey, null);
+  });
+});
+
+test('barva a věc: mezi odpověďmi je stejná věc i stejná barva', () => {
+  askMany('combo', 2, 'combo', 60, (q) => {
+    const [obj, col] = q.item.traits;
+    const wrong = q.choices.filter((c) => c.id !== q.answerId);
+    assert.ok(wrong.some((c) => c.traits[0] === obj && c.traits[1] !== col), q.item.id);
+    assert.ok(wrong.some((c) => c.traits[1] === col && c.traits[0] !== obj), q.item.id);
+  });
+});
+
+test('na, pod, v: odpovědi mají stejnou věc (stůl nebo krabice)', () => {
+  askMany('places', 2, 'pos', 40, (q) => {
+    assert.ok(q.choices.every((c) => c.group === q.item.group));
+  });
+});
+
+test('stín a kolik: obrázek nad odpověďmi', () => {
+  askMany('shadows', 2, 'shadow', 20, (q) => assert.match(q.item.prompt, /^shadow:/));
+  askMany('counting', 3, 'howmany', 20, (q) => {
+    assert.ok(q.choices.every((c) => c.cat === 'howmany'));
+    assert.equal(q.item.prompt.split(':')[1], q.item.art.split(':')[1]);
+  });
 });

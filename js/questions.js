@@ -24,6 +24,25 @@ const NUM_CS = ['jedna', 'dva', 'tři', 'čtyři', 'pět'];
 const NUM_EN = ['one', 'two', 'three', 'four', 'five'];
 const digit = (n) => ({ id: `digit-${n}`, cat: 'digit', art: `glyph:${n}`, text: `Kde je číslo ${NUM_CS[n - 1]}?`, en: `Where is number ${NUM_EN[n - 1]}?`, word: `${cap(NUM_EN[n - 1])}!` });
 
+// Těžší úlohy. Více pojmů má stejnou větu: `voice` je společný klíč nahrávky.
+// `prompt` je obrázek nad odpověďmi (stín, věc, jablka).
+// Co sem nepatří: poslední obrázek v `options` je ten jiný.
+const odd = (id, options, name) => ({ id: `odd-${id}`, cat: 'odd', voice: 'odd', options, name, text: 'Co sem nepatří?', en: 'Which one does not belong?' });
+const shadow = (id, cs, en) => ({ id: `shadow-${id}`, cat: 'shadow', voice: 'shadow', art: id, prompt: `shadow:${id}`, name: `stín: ${cs}`, text: 'Čí je to stín?', en: 'Whose shadow is this?', word: `${cap(en)}!` });
+// Barva a věc: mezi odpověďmi je vždy stejná věc v jiné barvě a jiná věc ve stejné barvě.
+// Auto má stejnou větu jako ve stopě Barvy, proto sdílí její nahrávku.
+const combo = (obj, col, cs) => {
+  const [noun, nounEn] = obj === 'car' ? ['auto', 'car'] : ['míč', 'ball'];
+  return { id: `combo-${obj}-${col}`, cat: 'combo', traits: [obj, col], art: `${obj}:${col}`, voice: obj === 'car' ? `car-${col}` : undefined,
+    text: `Kde je ${cs} ${noun}?`, en: `Where is the ${col} ${nounEn}?`, word: `${cap(col)} ${nounEn}!` };
+};
+// Co k sobě patří: `kind` je jídlo (eat) nebo věc (use). Špatné odpovědi jsou vždy z druhé skupiny,
+// takže správná odpověď je jen jedna (k pejskovi nikdy nenabídne mrkev).
+const match = (id, kind, prompt, art, cs, en, name, word) => ({ id: `match-${id}`, cat: 'match', kind, prompt, art, name, text: `Co patří ${cs}?`, en: `What goes with the ${en}?`, word });
+const howMany = (n) => ({ id: `howmany-${n}`, cat: 'howmany', voice: 'howmany', prompt: `apples:${n}`, art: `count:${n}`, name: `kolik: ${n}`, text: 'Kolik je tu jablíček?', en: 'How many apples are there?', word: `${cap(NUM_EN[n - 1])}!` });
+// Kde je kočička: `group` drží pohromadě obrázky se stejnou věcí (stůl, krabice).
+const pos = (group, id, cs, en, word) => ({ id: `pos-${group}-${id}`, cat: 'pos', group, art: `pos:${group}-${id}`, text: `Kde je kočička ${cs}?`, en: `Where is the cat ${en}?`, word });
+
 export const TRACKS = [
   { id: 'colors', label: 'Barvy', openAfter: 0, stages: [
     { answers: 2, items: [color('red', 'červená', 'red'), color('blue', 'modrá', 'blue'), color('yellow', 'žlutá', 'yellow'), color('green', 'zelená', 'green')] },
@@ -51,6 +70,8 @@ export const TRACKS = [
   ] },
   { id: 'counting', label: 'Počítání', openAfter: 26, stages: [
     { answers: 3, items: [count(1, 'Kde je jedna hvězda?', 'Where is one star?', 'One!'), count(2, 'Kde jsou dvě hvězdy?', 'Where are two stars?', 'Two!'), count(3, 'Kde jsou tři hvězdy?', 'Where are three stars?', 'Three!')] },
+    { answers: 3, items: [count(4, 'Kde jsou čtyři hvězdy?', 'Where are four stars?', 'Four!'), count(5, 'Kde je pět hvězd?', 'Where are five stars?', 'Five!')] },
+    { answers: 3, items: [1, 2, 3, 4, 5].map(howMany) },
   ] },
   { id: 'body', label: 'Tělo', openAfter: 30, stages: [
     { answers: 4, items: [body('nose', 'nos', 'nose'), body('eyes', 'oči', 'eyes'), body('mouth', 'pusu', 'mouth'), body('ears', 'uši', 'ears')] },
@@ -67,6 +88,45 @@ export const TRACKS = [
   { id: 'feelings', label: 'Pocity', openAfter: 46, stages: [
     { answers: 2, items: [feel('happy', 'veselý', 'happy'), feel('sad', 'smutný', 'sad')] },
     { answers: 4, items: [feel('angry', 'naštvaný', 'angry'), feel('sleepy', 'ospalý', 'sleepy')] },
+  ] },
+  { id: 'shadows', label: 'Stíny', openAfter: 50, stages: [
+    { answers: 2, items: [shadow('elephant', 'slon', 'elephant'), shadow('giraffe', 'žirafa', 'giraffe'), shadow('rabbit', 'zajíc', 'bunny'), shadow('duck', 'kachna', 'duck')] },
+    { answers: 3, items: [shadow('horse', 'kůň', 'horse'), shadow('hen', 'slepice', 'hen'), shadow('lion', 'lev', 'lion'), shadow('fish', 'ryba', 'fish')] },
+  ] },
+  { id: 'odd', label: 'Co sem nepatří', openAfter: 56, stages: [
+    { answers: 4, items: [
+      odd('dogs', ['dog', 'dog', 'dog', 'ball'], '3× pejsek a míč'),
+      odd('apples', ['apple', 'apple', 'apple', 'car'], '3× jablko a auto'),
+      odd('ducks', ['duck', 'duck', 'duck', 'shoe'], '3× kachna a bota'),
+      odd('stars', ['star', 'star', 'star', 'fish'], '3× hvězda a ryba'),
+    ] },
+    { answers: 4, items: [
+      odd('animals', ['cow', 'pig', 'sheep', 'car'], 'zvířata a auto'),
+      odd('rides', ['bus', 'train', 'plane', 'banana'], 'doprava a banán'),
+      odd('fruit', ['apple', 'pear', 'strawberry', 'dog'], 'ovoce a pejsek'),
+      odd('shapes', ['circle', 'square', 'triangle', 'cat'], 'tvary a kočka'),
+    ] },
+  ] },
+  { id: 'combo', label: 'Barva a věc', openAfter: 62, stages: [
+    { answers: 3, items: [combo('ball', 'red', 'červený'), combo('ball', 'blue', 'modrý'), combo('car', 'red', 'červené'), combo('car', 'blue', 'modré')] },
+    { answers: 4, items: [combo('ball', 'yellow', 'žlutý'), combo('ball', 'green', 'zelený'), combo('car', 'yellow', 'žluté'), combo('car', 'green', 'zelené')] },
+  ] },
+  { id: 'match', label: 'Co k sobě patří', openAfter: 68, stages: [
+    { answers: 2, items: [
+      match('shoe', 'use', 'shoe', 'sock', 'k botě', 'shoe', 'bota → ponožka', 'Sock!'),
+      match('toothbrush', 'use', 'toothbrush', 'toothpaste', 'ke kartáčku', 'toothbrush', 'kartáček → pasta', 'Toothpaste!'),
+      match('dog', 'eat', 'dog', 'bone', 'k pejskovi', 'dog', 'pejsek → kost', 'Bone!'),
+      match('rabbit', 'eat', 'rabbit', 'carrot', 'k zajíčkovi', 'bunny', 'zajíček → mrkev', 'Carrot!'),
+    ] },
+    { answers: 3, items: [
+      match('bucket', 'use', 'bucket', 'spade', 'ke kyblíčku', 'bucket', 'kyblíček → lopatka', 'Spade!'),
+      match('monkey', 'eat', 'monkey', 'banana', 'k opičce', 'monkey', 'opička → banán', 'Banana!'),
+      match('cat', 'eat', 'cat', 'fish', 'ke kočičce', 'cat', 'kočička → rybka', 'Fish!'),
+    ] },
+  ] },
+  { id: 'places', label: 'Na, pod, v', openAfter: 74, stages: [
+    { answers: 2, items: [pos('table', 'on', 'na stole', 'on the table', 'On!'), pos('table', 'under', 'pod stolem', 'under the table', 'Under!')] },
+    { answers: 3, items: [pos('box', 'in', 'v krabici', 'in the box', 'In!'), pos('box', 'on', 'na krabici', 'on the box', 'On!'), pos('box', 'next', 'vedle krabice', 'next to the box', 'Next to!')] },
   ] },
   // Písmena a číslice jsou pro dvouleté dítě brzo. Otevře je jen rodič.
   { id: 'letters', label: 'Písmena', manual: true, openAfter: Infinity, stages: [
@@ -147,15 +207,20 @@ export const sentenceKey = (id, lang) => (lang === 'en' ? `en:${id}` : id);
 
 const sentence = (id, lang, text, group, stage = 0) => ({ key: sentenceKey(id, lang), id, lang, text, group, stage });
 
-export const SENTENCES = [
+// Klíč nahrávky otázky. Pojmy se stejnou větou mají společný klíč.
+export const voiceKey = (item) => item.voice ?? item.id;
+
+const unique = (list) => list.filter((s, i) => list.findIndex((o) => o.key === s.key) === i);
+
+export const SENTENCES = unique([
   ...COMMON.map(([id, cs]) => sentence(id, 'cs', cs, 'common')),
-  ...ALL_ITEMS.map((i) => sentence(i.id, 'cs', i.text, i.track, i.stage)),
+  ...ALL_ITEMS.map((i) => sentence(voiceKey(i), 'cs', i.text, i.track, i.stage)),
   ...SHOP_LINES.map(([id, cs]) => sentence(id, 'cs', cs, 'shop')),
   ...COMMON.map(([id, , en]) => sentence(id, 'en', en, 'common')),
   ...SHOP_LINES.map(([id, , en]) => sentence(id, 'en', en, 'shop')),
-  ...ALL_ITEMS.map((i) => sentence(i.id, 'en', i.en, i.track, i.stage)),
+  ...ALL_ITEMS.map((i) => sentence(voiceKey(i), 'en', i.en, i.track, i.stage)),
   ...ALL_ITEMS.filter((i) => i.word).map((i) => sentence(`word-${i.id}`, 'en', i.word, i.track, i.stage)),
-];
+]);
 
 // Soubor s hlasem: „mom__cs__color-red.mp3“. Stejné jméno používá export, skript i import.
 export const voiceFileName = (kind, s, ext) => `${kind}__${s.lang}__${s.id}.${ext}`;
@@ -269,23 +334,37 @@ function chooseItem(p, rng) {
 function answerPool(p, item) {
   const cat = item.cat === 'sound' ? 'animal' : item.cat;
   const top = Math.max(1, stageOf(p, item.track));
-  return ALL_ITEMS.filter((i) => i.cat === cat && i.stage <= top);
+  return ALL_ITEMS.filter((i) => i.cat === cat && i.stage <= top && i.group === item.group && (!item.kind || i.kind !== item.kind));
+}
+
+// Barva a věc: první špatná odpověď je stejná věc v jiné barvě, druhá jiná věc ve stejné barvě.
+function comboFirst(item, others) {
+  const [obj, col] = item.traits;
+  const lead = [others.find((i) => i.traits[0] === obj), others.find((i) => i.traits[1] === col)].filter(Boolean);
+  return [...lead, ...others.filter((i) => !lead.includes(i))];
 }
 
 export function pickQuestion(p, rng = Math.random) {
   const item = chooseItem(p, rng);
   p.last = item.id;
+  if (item.options) {
+    const last = item.options.length - 1;
+    const choices = item.options.map((art, i) => ({ id: i === last ? item.id : `${item.id}-${i}`, art }));
+    return { item, answerId: item.id, wordKey: null, choices: shuffle(choices, rng) };
+  }
   const answerId = item.answerId ?? item.id;
   const pool = answerPool(p, item);
   const correct = byId.get(answerId);
-  const others = shuffle(pool.filter((i) => i.id !== answerId), rng);
+  let others = shuffle(pool.filter((i) => i.id !== answerId), rng);
+  if (item.traits) others = comboFirst(item, others);
   const t = trackOf(item.track);
   const n = t.stages[Math.max(1, stageOf(p, t.id)) - 1].answers;
-  return { item, answerId, choices: shuffle([correct, ...others.slice(0, n - 1)], rng) };
+  const wordKey = correct.word ? `word-${answerId}` : null;
+  return { item, answerId, wordKey, choices: shuffle([correct, ...others.slice(0, n - 1)], rng) };
 }
 
 // Jméno pojmu pro rodiče: „Kde je červená?“ → „červená“.
-export const itemName = (item) => item.text.replace(/^(Kde je písmeno|Kde je číslo|Kde je|Kde jsou|Kdo dělá|Kde máš|Kdo je|Co je) /, '').replace('?', '');
+export const itemName = (item) => item.name ?? item.text.replace(/^(Kde je písmeno|Kde je číslo|Kde je|Kde jsou|Kdo dělá|Kde máš|Kdo je|Co je) /, '').replace('?', '');
 
 // Úkol do světa: malá karta pro rodiče při Dobrou noc. Bere pojem, který se dítě právě učí.
 const TASKS = {
@@ -305,6 +384,12 @@ const TASKS = {
   feel: (n) => `Řekněte nahlas, jak se cítíte. Třeba: jsem ${n}.`,
   letter: (n) => `Hledejte na nápisech písmeno ${n}.`,
   digit: (n) => `Hledejte na domech a ve výtahu číslo ${n}.`,
+  shadow: () => 'Večer s baterkou dělejte na zeď stíny rukou. Čí je to stín?',
+  odd: () => 'Dejte na stůl 3 lžičky a 1 autíčko. Co tam nepatří?',
+  combo: (n) => `Hledejte doma: ${n}.`,
+  match: (n) => `Při úklidu dávejte k sobě, co patří k sobě: ${n}.`,
+  howmany: () => 'Počítejte nahlas do pěti: jablíčka, schody, prstíky.',
+  pos: () => 'Schovejte plyšáka na stůl, pod stůl a do krabice. Ptejte se: kde je?',
 };
 
 export function worldTask(p, rng = Math.random) {

@@ -75,6 +75,12 @@ img, svg { display: block; -webkit-user-drag: none; pointer-events: none; }
 #choices[data-count="3"] .choice { width: min(40vh, 21vw); height: min(40vh, 21vw); }
 #choices[data-count="4"] { flex-wrap: wrap; }
 #choices[data-count="4"] .choice { width: min(38vh, 26vw); height: min(38vh, 26vw); }
+/* Obrázek nad odpověďmi (stín, věc, jablíčka). Odpovědi jsou pod ním menší. */
+#choices[data-prompt] { flex-wrap: wrap; row-gap: 3vh; }
+#choices[data-prompt] .prompt { flex-basis: 100%; display: flex; justify-content: center; }
+.prompt span { display: block; width: 36vh; height: 36vh; padding: 2vh; background: #FFF7D6; border: 5px dashed #E2B41C; border-radius: 34px; }
+.prompt svg { display: block; width: 100%; height: 100%; }
+#choices[data-prompt] .choice { width: min(34vh, 20vw); height: min(34vh, 20vw); }
 .body-pick { position: relative; height: 84vh; aspect-ratio: 200 / 320; }
 .body-pick img { width: 100%; height: 100%; }
 .body-spot { position: absolute; width: 16%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: none; box-shadow: none; padding: 0; pointer-events: none; }

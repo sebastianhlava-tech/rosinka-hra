@@ -131,6 +131,12 @@ const ITEMS = {
   hot: '<path d="M64 40 q-14 -16 0 -32 M100 40 q-14 -16 0 -32 M136 40 q-14 -16 0 -32" fill="none" stroke="#FF8A1F" stroke-width="7" stroke-linecap="round"/><path d="M30 60 H170 L156 170 Q100 194 44 170Z" fill="#E23B3B"/><path d="M14 74 H30 M170 74 H186" stroke="#555" stroke-width="10" stroke-linecap="round"/>',
   cold: '<path d="M60 70 L100 192 L140 70Z" fill="#E8B46A"/><circle cx="100" cy="62" r="46" fill="#BFE3F5"/>' + [[70, 30], [130, 30], [100, 10]].map(([x, y]) => `<path d="M${x} ${y - 10}v20M${x - 10} ${y}h20M${x - 7} ${y - 7}l14 14M${x + 7} ${y - 7}l-14 14" stroke="#2F6FDE" stroke-width="4"/>`).join(''),
   arrow: round(100, 100, 92, 92, '#EDF0F4') + '<path d="M50 100 H146 M110 62 L148 100 L110 138" fill="none" stroke="#667" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>',
+  // Těžší úlohy: co k sobě patří.
+  sock: '<path d="M64 14 H128 V112 Q128 128 140 136 L170 150 Q192 164 180 184 Q170 198 146 190 L84 166 Q60 156 62 130Z" fill="#FF8FC0"/><rect x="62" y="14" width="68" height="26" fill="#F76AA8"/><path d="M146 150 Q170 156 168 182" fill="none" stroke="#F76AA8" stroke-width="12" stroke-linecap="round"/><path d="M66 70 H126 M66 96 H126" stroke="#fff" stroke-width="8"/>',
+  bone: '<g transform="rotate(-30 100 100)"><rect x="48" y="84" width="104" height="32" fill="#F4EEE0"/>' + [[44, 80], [44, 120], [156, 80], [156, 120]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="24" fill="#F4EEE0"/>`).join('') + '<path d="M48 84 H152 M48 116 H152" stroke="#D9CDB4" stroke-width="4"/></g>',
+  toothbrush: '<g transform="rotate(-35 100 100)"><rect x="20" y="92" width="120" height="20" rx="10" fill="#3DAA4E"/><rect x="132" y="88" width="50" height="28" rx="8" fill="#3DAA4E"/>' + [138, 148, 158, 168, 178].map((x) => `<rect x="${x - 3}" y="56" width="7" height="34" rx="3" fill="#BFE3F5"/>`).join('') + '</g>',
+  toothpaste: '<g transform="rotate(-20 100 100)"><path d="M40 60 H150 L170 100 L150 140 H40 Q28 140 28 128 V72 Q28 60 40 60Z" fill="#fff" stroke="#AAB4BE" stroke-width="5"/><rect x="168" y="86" width="22" height="28" rx="5" fill="#2F6FDE"/><path d="M40 82 H130 M40 118 H130" stroke="#E23B3B" stroke-width="9"/><path d="M190 100 q12 -14 0 -26" fill="none" stroke="#9BE3C4" stroke-width="12" stroke-linecap="round"/></g>',
+  spade: '<g transform="rotate(30 100 100)"><rect x="92" y="10" width="16" height="110" rx="8" fill="#FF8A1F"/><rect x="72" y="8" width="56" height="16" rx="8" fill="#FF8A1F"/><path d="M60 116 H140 V150 Q140 190 100 196 Q60 190 60 150Z" fill="#E23B3B"/></g>',
   tablet: '<g transform="rotate(90 100 100)"><rect x="50" y="20" width="100" height="160" rx="14" fill="#333"/><rect x="60" y="32" width="80" height="136" fill="#BFE3F5"/></g>',
 };
 
@@ -141,10 +147,31 @@ const swatch = (id) => {
 
 const ballAt = (r) => `<g transform="translate(100 100) scale(${r}) translate(-100 -100)">${ITEMS.ball}</g>`;
 
-const stars = (n) => {
-  // Všechny hvězdy jsou stejně velké, aby dítě vybíralo podle počtu, ne podle velikosti.
-  const places = { 1: [[100, 100]], 2: [[54, 100], [146, 100]], 3: [[100, 52], [52, 146], [148, 146]] }[n];
-  return places.map(([x, y]) => `<g transform="translate(${x} ${y}) scale(0.46) translate(-100 -100)">${ITEMS.star}</g>`).join('');
+// Rozložení jako na kostce. Všechny kusy jsou stejně velké, aby dítě vybíralo podle počtu, ne podle velikosti.
+const PLACES = {
+  1: [[100, 100]], 2: [[54, 100], [146, 100]], 3: [[100, 52], [52, 146], [148, 146]],
+  4: [[54, 54], [146, 54], [54, 146], [146, 146]], 5: [[44, 44], [156, 44], [100, 100], [44, 156], [156, 156]],
+};
+const group = (n, body) => PLACES[n].map(([x, y]) => `<g transform="translate(${x} ${y}) scale(${{ 4: 0.4, 5: 0.34 }[n] ?? 0.46}) translate(-100 -100)">${body}</g>`).join('');
+const stars = (n) => group(n, ITEMS.star);
+
+// Míč jedné barvy (pro úlohu Barva a věc).
+const plainBall = (c) => round(100, 100, 82, 82, c) + `<circle cx="100" cy="100" r="82" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="5"/><path d="M26 66q74 34 148 0M26 134q74-34 148 0" fill="none" stroke="${c === '#FFFFFF' ? '#ddd' : '#fff'}" stroke-width="10"/>`;
+
+// Stín: celý obrázek jednou tmavou barvou.
+const shadowOf = (body) => body.replace(/(fill|stroke)="(?!none)[^"]*"/g, '$1="#3A3F47"');
+
+// Kočička a stůl nebo krabice: na, pod, v, vedle.
+const kitty = (x, y, s = 0.5) => `<g transform="translate(${x} ${y}) scale(${s}) translate(-100 -110)">${ITEMS.cat}</g>`;
+const table = '<rect x="20" y="86" width="160" height="16" rx="5" fill="#B07A43"/><rect x="34" y="100" width="12" height="90" fill="#8A5A33"/><rect x="154" y="100" width="12" height="90" fill="#8A5A33"/>';
+const floor = '<rect x="0" y="188" width="200" height="12" fill="#D9DEE3"/>';
+const box = (x, w = 110) => `<rect x="${x}" y="120" width="${w}" height="70" rx="4" fill="#C99A5B"/><path d="M${x} 140 H${x + w}" stroke="#A9773F" stroke-width="5"/>`;
+const SCENES = {
+  'table-on': floor + table + kitty(100, 56),
+  'table-under': floor + table + kitty(100, 158),
+  'box-in': floor + kitty(100, 114, 0.46) + box(45) + `<path d="M45 120 L25 96 M155 120 L175 96" stroke="#A9773F" stroke-width="8" stroke-linecap="round"/>`,
+  'box-on': floor + box(45) + kitty(100, 94, 0.44),
+  'box-next': floor + box(14, 96) + kitty(158, 162, 0.44),
 };
 
 // Tvar má barvu podle otázky, aby si dítě nespojilo tvar s jednou barvou.
@@ -172,6 +199,10 @@ export function artSvg(key, tint) {
   if (key === 'size:big') return svg(ballAt(1));
   if (key === 'size:small') return svg(ballAt(0.4));
   if (key.startsWith('count:')) return svg(stars(Number(key.slice(6))));
+  if (key.startsWith('apples:')) return svg(group(Number(key.slice(7)), ITEMS.apple));
+  if (key.startsWith('ball:')) return svg(plainBall(COLORS[key.slice(5)]));
+  if (key.startsWith('shadow:')) return svg(shadowOf(ITEMS[key.slice(7)]));
+  if (key.startsWith('pos:')) return svg(SCENES[key.slice(4)]);
   return svg(ITEMS[key]);
 }
 

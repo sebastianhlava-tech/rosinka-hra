@@ -18,9 +18,17 @@ Během hry podrž prst 3 sekundy v pravém horním rohu.
 
 Tady je Začít znovu, změna postav, délka hry, obtížnost, jazyk, průvodce, zvuky a přehled, co už dcera umí.
 
-Učení má stopy: Barvy, Zvířata, Věci, Tvary, Protiklady (velký–malý, plný–prázdný, horký–studený), Počítání, Tělo, Jídlo, Doprava, Pocity, Písmena a Číslice. Každá stopa se posouvá a otevírá sama. V části Co už umí můžeš stopu posunout nebo vypnout.
+Učení má stopy: Barvy, Zvířata, Věci, Tvary, Protiklady (velký–malý, plný–prázdný, horký–studený), Počítání, Tělo, Jídlo, Doprava, Pocity, Stíny, Co sem nepatří, Barva a věc, Co k sobě patří, Na pod v, Písmena a Číslice. Každá stopa se posouvá a otevírá sama. V části Co už umí můžeš stopu posunout nebo vypnout.
 Písmena a Číslice se samy neotevřou. Zapne je rodič v části Co už umí (pro dvouleté dítě jsou brzo).
 Tělo: hlas se zeptá „Kde máš nos?“ a dítě ťukne na nos své postavičky. Stačí ťuknout přibližně.
+
+Těžší úlohy (otevřou se samy později, nebo je zapne rodič v části Co už umí):
+- **Počítání** má 3 stupně: hvězdy 1–3, hvězdy 4–5, potom „Kolik je tu jablíček?“ (nahoře jablíčka, dole hvězdy).
+- **Stíny**: nahoře je černý stín, dítě vybere zvíře.
+- **Co sem nepatří**: 4 obrázky. Nejdřív 3 stejné a 1 jiný, potom 3 zvířata a 1 auto.
+- **Barva a věc**: „Kde je modrý míč?“ Mezi odpověďmi je vždy červený míč i modré auto.
+- **Co k sobě patří**: nahoře bota, dole ponožka. Špatné odpovědi jsou vždy z jiné skupiny (k věci jen jídlo, ke zvířeti jen věci). Správná odpověď je proto jen jedna.
+- **Na, pod, v**: „Kde je kočička pod stolem?“ Potom krabice: v, na, vedle.
 
 Úkol do světa: při Dobrou noc je vlevo nahoře malá karta pro rodiče, třeba „Zítra najděte doma 3 věci v barvě: červená.“ Bere pojem, který se dítě právě učí. Hlas ho neříká.
 

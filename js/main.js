@@ -6,7 +6,7 @@ import { BIOMES, DIFFICULTIES, MAX_FRIENDS, nextUpgrade, pickWeather } from './b
 import { characterFor } from './character.js';
 import { openCreator } from './creator.js';
 import { bindCornerHold, openParent } from './parent.js';
-import { ALL_ITEMS, itemStatus, pickQuestion, playLevel, recordAnswer, worldTask } from './questions.js';
+import { ALL_ITEMS, itemStatus, pickQuestion, playLevel, recordAnswer, voiceKey, worldTask } from './questions.js';
 import { ANSWER_STARS, ROOM_ITEMS, addRunStar, addStars } from './shop.js';
 import { openShop } from './shopview.js';
 import { characterOf, loadState, saveState } from './storage.js';
@@ -280,8 +280,14 @@ function renderBody(q, onPick) {
 function renderChoices(q, onPick) {
   const host = $('choices');
   host.innerHTML = '';
+  delete host.dataset.prompt;
   if (q.item.cat === 'body') return renderBody(q, onPick);
   host.dataset.count = q.choices.length;
+  // Obrázek nad odpověďmi: stín, věc nebo jablíčka.
+  if (q.item.prompt) {
+    host.dataset.prompt = '';
+    host.innerHTML = `<div class="prompt"><span>${artSvg(q.item.prompt)}</span></div>`;
+  }
   const tint = shapeTint();
   q.choices.forEach((choice) => {
     const b = document.createElement('button');
@@ -312,7 +318,7 @@ function askQuestion() {
     chime(880);
     await say(`praise-${1 + Math.floor(Math.random() * 3)}`);
     // V režimu Obojí po české pochvale zazní anglické slovo.
-    if (state.lang === 'both' && q.answerId) await say(`word-${q.answerId}`, undefined, 'en');
+    if (state.lang === 'both' && q.wordKey) await say(q.wordKey, undefined, 'en');
     $('question').hidden = true;
     const animal = q.choices.find((c) => c.cat === 'animal')?.art;
     if (levelUp) {
@@ -336,21 +342,21 @@ function askQuestion() {
     if (wrong >= showAfter) {
       document.querySelectorAll('.choice').forEach((b) => { b.disabled = b !== rightButton(); });
       rightButton().classList.add('pulse');
-      await say(q.item.id);
+      await say(voiceKey(q.item));
       return finish();
     }
     if (wrong >= hint) rightButton().classList.add('pulse');
     await say('retry');
-    if (!finished) say(q.item.id);
+    if (!finished) say(voiceKey(q.item));
   };
 
-  $('ear').onclick = () => say(q.item.id);
+  $('ear').onclick = () => say(voiceKey(q.item));
   renderChoices(q, onPick);
   const guide = nextGuide();
   setSpeaker(guide);
   $('guide').src = portrait(guide);
   $('question').hidden = false;
-  say(q.item.id);
+  say(voiceKey(q.item));
 }
 
 async function giveUpgrade(q) {
